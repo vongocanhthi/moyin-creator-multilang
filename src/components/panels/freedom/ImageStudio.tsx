@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ImageIcon, Loader2, Download, Save, Sparkles, Archive } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -22,6 +23,7 @@ import {
 } from '@/lib/freedom/model-registry';
 
 export function ImageStudio() {
+  const { t } = useTranslation();
   const [saveToPropsOpen, setSaveToPropsOpen] = useState(false);
 
   const {
@@ -56,7 +58,7 @@ export function ImageStudio() {
 
   const handleGenerate = useCallback(async () => {
     if (!imagePrompt.trim()) {
-      toast.error('请输入描述文字');
+      toast.error(t('freedom.common.promptRequired'));
       return;
     }
 
@@ -86,13 +88,13 @@ export function ImageStudio() {
         type: 'image',
       });
 
-      toast.success('图片生成成功！已保存到素材库');
+      toast.success(t('freedom.image.toastOk'));
     } catch (err: any) {
-      toast.error(`生成失败: ${err.message}`);
+      toast.error(t('freedom.image.toastFail', { error: err.message }));
     } finally {
       setImageGenerating(false);
     }
-  }, [imagePrompt, selectedImageModel, imageAspectRatio, imageResolution, imageExtraParams]);
+  }, [imagePrompt, selectedImageModel, imageAspectRatio, imageResolution, imageExtraParams, t, addHistoryEntry, setImageGenerating, setImageResult]);
 
   const updateExtraParam = (key: string, value: any) => {
     setImageExtraParams({ ...imageExtraParams, [key]: value });
@@ -106,7 +108,7 @@ export function ImageStudio() {
           <div className="p-4 space-y-5">
             {/* Model Selection */}
             <div className="space-y-2">
-              <Label className="text-sm font-medium">模型选择</Label>
+              <Label className="text-sm font-medium">{t('freedom.image.model')}</Label>
               <ModelSelector
                 type="image"
                 value={selectedImageModel}
@@ -121,7 +123,7 @@ export function ImageStudio() {
 
             {/* Aspect Ratio */}
             <div className="space-y-2">
-              <Label className="text-sm font-medium">宽高比</Label>
+              <Label className="text-sm font-medium">{t('freedom.image.aspectRatio')}</Label>
               <div className="flex flex-wrap gap-1.5">
                 {aspectRatios.map((ratio) => (
                   <Button
@@ -140,10 +142,10 @@ export function ImageStudio() {
             {/* Resolution (conditional) */}
             {hasResolution && (
               <div className="space-y-2">
-                <Label className="text-sm font-medium">分辨率</Label>
+                <Label className="text-sm font-medium">{t('freedom.image.resolution')}</Label>
                 <Select value={imageResolution} onValueChange={setImageResolution}>
                   <SelectTrigger className="h-9">
-                    <SelectValue placeholder="选择分辨率" />
+                    <SelectValue placeholder={t('freedom.image.selectResolution')} />
                   </SelectTrigger>
                   <SelectContent>
                     {resolutions.map((r) => (
@@ -158,7 +160,7 @@ export function ImageStudio() {
             {hasMidjourneyParams && (
               <>
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">速度</Label>
+                  <Label className="text-sm font-medium">{t('freedom.image.speed')}</Label>
                   <Select
                     value={imageExtraParams.speed || 'fast'}
                     onValueChange={(v) => updateExtraParam('speed', v)}
@@ -202,7 +204,7 @@ export function ImageStudio() {
             {hasIdeogramParams && (
               <>
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">渲染速度</Label>
+                  <Label className="text-sm font-medium">{t('freedom.image.renderSpeed')}</Label>
                   <Select
                     value={imageExtraParams.render_speed || 'Balanced'}
                     onValueChange={(v) => updateExtraParam('render_speed', v)}
@@ -216,7 +218,7 @@ export function ImageStudio() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">风格</Label>
+                  <Label className="text-sm font-medium">{t('freedom.image.style')}</Label>
                   <Select
                     value={imageExtraParams.style || 'Auto'}
                     onValueChange={(v) => updateExtraParam('style', v)}
@@ -235,9 +237,9 @@ export function ImageStudio() {
 
             {/* Prompt Input */}
             <div className="space-y-2">
-              <Label className="text-sm font-medium">描述文字</Label>
+              <Label className="text-sm font-medium">{t('freedom.image.prompt')}</Label>
               <Textarea
-                placeholder="描述你想生成的图片..."
+                placeholder={t('freedom.image.promptPlaceholder')}
                 value={imagePrompt}
                 onChange={(e) => setImagePrompt(e.target.value)}
                 className="min-h-[120px] resize-none"
@@ -251,9 +253,9 @@ export function ImageStudio() {
               disabled={imageGenerating || !imagePrompt.trim()}
             >
               {imageGenerating ? (
-                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> 生成中...</>
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t('freedom.image.generating')}</>
               ) : (
-                <><Sparkles className="mr-2 h-4 w-4" /> 生成图片</>
+                <><Sparkles className="mr-2 h-4 w-4" />{t('freedom.image.generate')}</>
               )}
             </Button>
           </div>
@@ -265,7 +267,7 @@ export function ImageStudio() {
         {imageGenerating ? (
           <div className="flex flex-col items-center gap-4">
             <Loader2 className="h-12 w-12 animate-spin text-primary" />
-            <p className="text-sm text-muted-foreground">图片生成中，请稍候...</p>
+            <p className="text-sm text-muted-foreground">{t('freedom.image.generatingWait')}</p>
           </div>
         ) : imageResult ? (
           <div className="max-w-full max-h-full relative group">
@@ -276,11 +278,11 @@ export function ImageStudio() {
             />
             <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
               <Button size="sm" variant="secondary" onClick={() => setSaveToPropsOpen(true)}>
-                <Archive className="h-4 w-4 mr-1" /> 保存到道具库
+                <Archive className="h-4 w-4 mr-1" />{t('freedom.image.saveToProps')}
               </Button>
               <Button size="sm" variant="secondary" asChild>
                 <a href={imageResult} download target="_blank" rel="noopener">
-                  <Download className="h-4 w-4 mr-1" /> 下载
+                  <Download className="h-4 w-4 mr-1" />{t('freedom.image.download')}
                 </a>
               </Button>
             </div>
@@ -288,8 +290,8 @@ export function ImageStudio() {
         ) : (
           <div className="flex flex-col items-center gap-3 text-muted-foreground">
             <ImageIcon className="h-16 w-16 opacity-20" />
-            <p className="text-lg font-medium">图片工作室</p>
-            <p className="text-sm">选择模型，输入描述，生成你想要的图片</p>
+            <p className="text-lg font-medium">{t('freedom.image.emptyTitle')}</p>
+            <p className="text-sm">{t('freedom.image.emptyDesc')}</p>
           </div>
         )}
       </div>

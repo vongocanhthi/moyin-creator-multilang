@@ -8,7 +8,8 @@
  * 左栏：剧本输入（导入/创作两种模式）
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -37,49 +38,8 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { StylePicker } from "@/components/ui/style-picker";
-import type { VisualStyleId } from "@/lib/constants/visual-styles";
 import type { PromptLanguage } from "@/types/script";
 import { useScriptStore } from "@/stores/script-store";
-
-const PROMPT_LANGUAGE_OPTIONS = [
-  { value: "zh", label: "仅中文" },
-  { value: "en", label: "仅英文" },
-  { value: "zh+en", label: "中英文" },
-];
-
-const DURATION_OPTIONS = [
-  { value: "auto", label: "自动" },
-  { value: "10s", label: "10秒" },
-  { value: "15s", label: "15秒" },
-  { value: "20s", label: "20秒" },
-  { value: "30s", label: "30秒" },
-  { value: "60s", label: "1分钟" },
-  { value: "90s", label: "1分30秒" },
-  { value: "120s", label: "2分钟" },
-  { value: "180s", label: "3分钟" },
-];
-
-const SCENE_COUNT_OPTIONS = [
-  { value: "1", label: "1个场景" },
-  { value: "2", label: "2个场景" },
-  { value: "3", label: "3个场景" },
-  { value: "4", label: "4个场景" },
-  { value: "5", label: "5个场景" },
-  { value: "6", label: "6个场景" },
-  { value: "8", label: "8个场景" },
-  { value: "10", label: "10个场景" },
-];
-
-const SHOT_COUNT_OPTIONS = [
-  { value: "3", label: "3个分镜" },
-  { value: "4", label: "4个分镜" },
-  { value: "5", label: "5个分镜" },
-  { value: "6", label: "6个分镜" },
-  { value: "8", label: "8个分镜" },
-  { value: "10", label: "10个分镜" },
-  { value: "12", label: "12个分镜" },
-  { value: "custom", label: "自定义..." },
-];
 
 interface ScriptInputProps {
   rawScript: string;
@@ -174,6 +134,62 @@ export function ScriptInput({
   const [isCalibrating, setIsCalibrating] = useState(false);
   const [isGeneratingSynopsis, setIsGeneratingSynopsis] = useState(false);
 
+  const { t } = useTranslation();
+
+  const promptLanguageOptions = useMemo(
+    () =>
+      (["zh", "en", "zh+en"] as const).map((value) => ({
+        value,
+        label: t(
+          value === "zh+en"
+            ? "scriptPanel.input.promptLang.zhEn"
+            : value === "zh"
+              ? "scriptPanel.input.promptLang.zh"
+              : "scriptPanel.input.promptLang.en"
+        ),
+      })),
+    [t]
+  );
+
+  const durationOptions = useMemo(
+    () =>
+      (
+        [
+          ["auto", "auto"],
+          ["10s", "s10"],
+          ["15s", "s15"],
+          ["20s", "s20"],
+          ["30s", "s30"],
+          ["60s", "m1"],
+          ["90s", "m1_5"],
+          ["120s", "m2"],
+          ["180s", "m3"],
+        ] as const
+      ).map(([value, key]) => ({
+        value,
+        label: t(`scriptPanel.input.duration.${key}`),
+      })),
+    [t]
+  );
+
+  const sceneCountOptions = useMemo(
+    () =>
+      (["1", "2", "3", "4", "5", "6", "8", "10"] as const).map((value) => ({
+        value,
+        label: t(`scriptPanel.input.sceneCount.${value}`),
+      })),
+    [t]
+  );
+
+  const shotCountOptions = useMemo(
+    () =>
+      (["3", "4", "5", "6", "8", "10", "12", "custom"] as const).map((value) => ({
+        value,
+        label: t(`scriptPanel.input.shotCount.${value}`),
+      })),
+    [t]
+  );
+
   // Reload persisted draft when project switches
   useEffect(() => {
     setMode(inputDraft?.mode || "import");
@@ -236,11 +252,11 @@ export function ScriptInput({
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="import" className="text-xs">
             <FileText className="h-3 w-3 mr-1" />
-            导入
+            {t("scriptPanel.input.tabImport")}
           </TabsTrigger>
           <TabsTrigger value="create" className="text-xs">
             <Sparkles className="h-3 w-3 mr-1" />
-            创作
+            {t("scriptPanel.input.tabCreate")}
           </TabsTrigger>
         </TabsList>
 
@@ -248,10 +264,10 @@ export function ScriptInput({
         <TabsContent value="import" className="flex-1 mt-3 overflow-y-auto">
           <div className="space-y-2">
             <Label className="text-xs text-muted-foreground">
-              粘贴完整剧本（包含大纲、人物小传、各集内容）
+              {t("scriptPanel.input.pasteLabel")}
             </Label>
             <Textarea
-              placeholder="支持的格式：\n• 第X集（集标记）\n• **1-1日 内 地点**（场景头）\n• 人物：角色A、角色B\n• 角色名：（动作）台词\n• △动作描写\n• 【字幕】【闪回】等"
+              placeholder={t("scriptPanel.input.pastePlaceholder")}
               value={rawScript}
               onChange={(e) => onRawScriptChange(e.target.value)}
               className="min-h-[200px] max-h-[40vh] resize-none text-sm overflow-y-auto"
@@ -260,16 +276,18 @@ export function ScriptInput({
             {/* 导入状态提示 */}
             {importStatus === "ready" && (
               <div className="space-y-1">
-                <p className="text-xs text-green-600">✓ 导入成功！可在右侧点击集名生成分镜</p>
+                <p className="text-xs text-green-600">{t("scriptPanel.input.importSuccess")}</p>
                 {(missingTitleCount ?? 0) > 0 && (
                   <p className="text-xs text-amber-600">
-                    ⚠ {missingTitleCount} 集缺少标题，可使用AI校准生成
+                    {t("scriptPanel.input.missingTitlesShort", { count: missingTitleCount })}
                   </p>
                 )}
               </div>
             )}
             {importStatus === "error" && importError && (
-              <p className="text-xs text-destructive">导入失败：{importError}</p>
+              <p className="text-xs text-destructive">
+                {t("scriptPanel.input.importFailed")} {importError}
+              </p>
             )}
             
             {/* 持久进度状态显示 - 在执行过程中始终可见 */}
@@ -284,7 +302,9 @@ export function ScriptInput({
                 <div className="flex items-center gap-3 text-primary">
                   <Loader2 className="h-6 w-6 animate-spin" />
                   <span className="text-lg font-bold">
-                    {secondPassTypes && secondPassTypes.size > 0 ? '🔄 二次校准中...' : '正在处理中...'}
+                    {secondPassTypes && secondPassTypes.size > 0
+                      ? t("scriptPanel.input.secondPassTitle")
+                      : t("scriptPanel.input.processingTitle")}
                   </span>
                 </div>
                 <div className="space-y-2">
@@ -301,8 +321,10 @@ export function ScriptInput({
                           ) : (
                             <span className="w-5 h-5 rounded-full border-2 border-current" />
                           )}
-                          <span className="text-base">AI 校准分镜</span>
-                          <span className="text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">二次</span>
+                          <span className="text-base">{t("scriptPanel.input.stepImportShots")}</span>
+                          <span className="text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                            {t("scriptPanel.input.badgeSecondPass")}
+                          </span>
                         </div>
                       )}
                       
@@ -316,8 +338,10 @@ export function ScriptInput({
                           ) : (
                             <span className="w-5 h-5 rounded-full border-2 border-current" />
                           )}
-                          <span className="text-base">AI 角色校准</span>
-                          <span className="text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">二次</span>
+                          <span className="text-base">{t("scriptPanel.input.stepCharCalib")}</span>
+                          <span className="text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                            {t("scriptPanel.input.badgeSecondPass")}
+                          </span>
                         </div>
                       )}
                       
@@ -331,8 +355,10 @@ export function ScriptInput({
                           ) : (
                             <span className="w-5 h-5 rounded-full border-2 border-current" />
                           )}
-                          <span className="text-base">AI 场景校准</span>
-                          <span className="text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">二次</span>
+                          <span className="text-base">{t("scriptPanel.input.stepImportScenes")}</span>
+                          <span className="text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                            {t("scriptPanel.input.badgeSecondPass")}
+                          </span>
                         </div>
                       )}
                     </>
@@ -348,7 +374,7 @@ export function ScriptInput({
                         ) : (
                           <span className="w-5 h-5 rounded-full border-2 border-current" />
                         )}
-                        <span className="text-base">导入剧本</span>
+                        <span className="text-base">{t("scriptPanel.input.stepImport")}</span>
                       </div>
                       
                       {/* 标题校准 */}
@@ -360,7 +386,7 @@ export function ScriptInput({
                         ) : (
                           <span className="w-5 h-5 rounded-full border-2 border-current" />
                         )}
-                        <span className="text-base">AI 标题校准</span>
+                        <span className="text-base">{t("scriptPanel.input.stepTitleCalib")}</span>
                       </div>
                       
                       {/* 大纲生成 */}
@@ -372,7 +398,7 @@ export function ScriptInput({
                         ) : (
                           <span className="w-5 h-5 rounded-full border-2 border-current" />
                         )}
-                        <span className="text-base">AI 大纲生成</span>
+                        <span className="text-base">{t("scriptPanel.input.stepSynopsis")}</span>
                       </div>
                       
                       {/* 分镜校准 */}
@@ -384,7 +410,7 @@ export function ScriptInput({
                         ) : (
                           <span className="w-5 h-5 rounded-full border-2 border-current" />
                         )}
-                        <span className="text-base">AI 分镜校准</span>
+                        <span className="text-base">{t("scriptPanel.input.stepShotCalib")}</span>
                       </div>
                       
                       {/* 角色校准 */}
@@ -396,7 +422,7 @@ export function ScriptInput({
                         ) : (
                           <span className="w-5 h-5 rounded-full border-2 border-current" />
                         )}
-                        <span className="text-base">AI 角色校准</span>
+                        <span className="text-base">{t("scriptPanel.input.stepCharCalib")}</span>
                       </div>
                       
                       {/* 场景校准 */}
@@ -408,7 +434,7 @@ export function ScriptInput({
                         ) : (
                           <span className="w-5 h-5 rounded-full border-2 border-current" />
                         )}
-                        <span className="text-base">AI 场景校准</span>
+                        <span className="text-base">{t("scriptPanel.input.stepSceneCalib")}</span>
                       </div>
                     </>
                   )}
@@ -423,10 +449,10 @@ export function ScriptInput({
           <div className="space-y-3">
             <div className="space-y-2">
               <Label className="text-xs text-muted-foreground">
-                输入故事创意，AI帮你生成剧本
+                {t("scriptPanel.input.createIdeaLabel")}
               </Label>
               <Textarea
-                placeholder="例如：一个内向程序员在咖啡店邂逅开朗女孩的温暖故事..."
+                placeholder={t("scriptPanel.input.createIdeaPlaceholder")}
                 value={idea}
                 onChange={(e) => setIdea(e.target.value)}
                 className="min-h-[100px] resize-none text-sm"
@@ -442,12 +468,12 @@ export function ScriptInput({
               {isGenerating ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  生成中...
+                  {t("scriptPanel.input.generating")}
                 </>
               ) : (
                 <>
                   <Sparkles className="h-4 w-4 mr-2" />
-                  AI生成剧本
+                  {t("scriptPanel.input.generateScript")}
                 </>
               )}
             </Button>
@@ -456,7 +482,7 @@ export function ScriptInput({
             {rawScript && (
               <div className="space-y-2">
                 <Label className="text-xs text-muted-foreground">
-                  生成的剧本（可编辑）
+                  {t("scriptPanel.input.generatedLabel")}
                 </Label>
                 <Textarea
                   value={rawScript}
@@ -470,19 +496,19 @@ export function ScriptInput({
             {/* 创作模式工作流引导 */}
             {parseStatus === "ready" && (
               <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 space-y-2">
-                <div className="text-xs font-medium text-primary">✨ 剧本已生成，下一步</div>
+                <div className="text-xs font-medium text-primary">{t("scriptPanel.input.nextStepsTitle")}</div>
                 <div className="space-y-1.5 text-xs text-muted-foreground">
                   <div className="flex items-center gap-2">
                     <span className="w-4 h-4 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-bold">1</span>
-                    <span>在中栏选择场景 → 右栏点「去场景库生成背景」</span>
+                    <span>{t("scriptPanel.input.nextStep1")}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="w-4 h-4 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-bold">2</span>
-                    <span>选择角色 → 右栏点「去角色库生成形象」</span>
+                    <span>{t("scriptPanel.input.nextStep2")}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="w-4 h-4 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-bold">3</span>
-                    <span>选择分镜 → 右栏点「去AI导演生成视频」</span>
+                    <span>{t("scriptPanel.input.nextStep3")}</span>
                   </div>
                 </div>
               </div>
@@ -497,7 +523,7 @@ export function ScriptInput({
         {mode === "import" && (
           <div className="space-y-3">
             <div className="space-y-1">
-              <Label className="text-xs">剧本语言</Label>
+              <Label className="text-xs">{t("scriptPanel.input.scriptLanguage")}</Label>
               <Select
                 value={language}
                 onValueChange={onLanguageChange}
@@ -507,15 +533,15 @@ export function ScriptInput({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="中文">中文</SelectItem>
-                  <SelectItem value="English">English</SelectItem>
-                  <SelectItem value="日本語">日本語</SelectItem>
+                  <SelectItem value="中文">{t("scriptPanel.input.langScript.zh")}</SelectItem>
+                  <SelectItem value="English">{t("scriptPanel.input.langScript.en")}</SelectItem>
+                  <SelectItem value="日本語">{t("scriptPanel.input.langScript.ja")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-1">
-              <Label className="text-xs">提示词语言</Label>
+              <Label className="text-xs">{t("scriptPanel.input.promptLanguage")}</Label>
               <Select
                 value={promptLanguage || "en"}
                 onValueChange={(v) => onPromptLanguageChange?.(v as PromptLanguage)}
@@ -525,7 +551,7 @@ export function ScriptInput({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {PROMPT_LANGUAGE_OPTIONS.map((opt) => (
+                  {promptLanguageOptions.map((opt) => (
                     <SelectItem key={opt.value} value={opt.value}>
                       {opt.label}
                     </SelectItem>
@@ -533,24 +559,24 @@ export function ScriptInput({
                 </SelectContent>
               </Select>
               <p className="text-[10px] text-muted-foreground">
-                控制AI校准生成中/英文提示词，默认仅中文可减少生成压力
+                {t("scriptPanel.input.promptHintImport")}
               </p>
             </div>
 
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
-                <Label className="text-xs">场景数量（可选）</Label>
+                <Label className="text-xs">{t("scriptPanel.input.sceneCountOptional")}</Label>
                 <Select
                   value={sceneCount || ""}
                   onValueChange={(v) => onSceneCountChange?.(v)}
                   disabled={parseStatus === "parsing"}
                 >
                   <SelectTrigger className="h-8 text-xs">
-                    <SelectValue placeholder="自动" />
+                    <SelectValue placeholder={t("scriptPanel.input.auto")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="auto">自动</SelectItem>
-                    {SCENE_COUNT_OPTIONS.map((opt) => (
+                    <SelectItem value="auto">{t("scriptPanel.input.auto")}</SelectItem>
+                    {sceneCountOptions.map((opt) => (
                       <SelectItem key={opt.value} value={opt.value}>
                         {opt.label}
                       </SelectItem>
@@ -560,14 +586,14 @@ export function ScriptInput({
               </div>
 
               <div className="space-y-1">
-                <Label className="text-xs">分镜数量（可选）</Label>
+                <Label className="text-xs">{t("scriptPanel.input.shotCountOptional")}</Label>
                 {showCustomShotInput ? (
                   <div className="flex gap-1">
                     <Input
                       type="number"
                       min="1"
                       max="100"
-                      placeholder="输入数量"
+                      placeholder={t("scriptPanel.input.customCountPlaceholder")}
                       value={customShotValue}
                       onChange={(e) => setCustomShotValue(e.target.value)}
                       onBlur={() => {
@@ -593,7 +619,7 @@ export function ScriptInput({
                         onShotCountChange?.("auto");
                       }}
                     >
-                      取消
+                      {t("scriptPanel.input.cancel")}
                     </Button>
                   </div>
                 ) : (
@@ -609,11 +635,11 @@ export function ScriptInput({
                     disabled={parseStatus === "parsing"}
                   >
                     <SelectTrigger className="h-8 text-xs">
-                      <SelectValue placeholder="自动" />
+                      <SelectValue placeholder={t("scriptPanel.input.auto")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="auto">自动</SelectItem>
-                      {SHOT_COUNT_OPTIONS.map((opt) => (
+                      <SelectItem value="auto">{t("scriptPanel.input.auto")}</SelectItem>
+                      {shotCountOptions.map((opt) => (
                         <SelectItem key={opt.value} value={opt.value}>
                           {opt.label}
                         </SelectItem>
@@ -628,7 +654,7 @@ export function ScriptInput({
             <div className="space-y-1">
               <Label className="text-xs flex items-center gap-1">
                 <Palette className="h-3 w-3" />
-                视觉风格
+                {t("scriptPanel.input.visualStyle")}
               </Label>
               <StylePicker
                 value={styleId}
@@ -636,7 +662,7 @@ export function ScriptInput({
                 disabled={parseStatus === "parsing"}
               />
               <p className="text-[10px] text-muted-foreground">
-                此风格将用于AI校准分镜时生成视觉描述
+                {t("scriptPanel.input.visualStyleHint")}
               </p>
             </div>
           </div>
@@ -646,7 +672,7 @@ export function ScriptInput({
         {mode === "create" && (
           <div className="space-y-3">
             <div className="space-y-1">
-              <Label className="text-xs">提示词语言</Label>
+              <Label className="text-xs">{t("scriptPanel.input.promptLanguage")}</Label>
               <Select
                 value={promptLanguage || "en"}
                 onValueChange={(v) => onPromptLanguageChange?.(v as PromptLanguage)}
@@ -656,7 +682,7 @@ export function ScriptInput({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {PROMPT_LANGUAGE_OPTIONS.map((opt) => (
+                  {promptLanguageOptions.map((opt) => (
                     <SelectItem key={opt.value} value={opt.value}>
                       {opt.label}
                     </SelectItem>
@@ -664,12 +690,12 @@ export function ScriptInput({
                 </SelectContent>
               </Select>
               <p className="text-[10px] text-muted-foreground">
-                控制AI生成中/英文提示词，默认仅中文可减少生成压力
+                {t("scriptPanel.input.promptHintCreate")}
               </p>
             </div>
             <div className="grid grid-cols-3 gap-2">
               <div className="space-y-1">
-                <Label className="text-xs">语言</Label>
+                <Label className="text-xs">{t("scriptPanel.input.langShort")}</Label>
                 <Select
                   value={language}
                   onValueChange={onLanguageChange}
@@ -679,15 +705,15 @@ export function ScriptInput({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="中文">中文</SelectItem>
-                    <SelectItem value="English">English</SelectItem>
-                    <SelectItem value="日本語">日本語</SelectItem>
+                    <SelectItem value="中文">{t("scriptPanel.input.langScript.zh")}</SelectItem>
+                    <SelectItem value="English">{t("scriptPanel.input.langScript.en")}</SelectItem>
+                    <SelectItem value="日本語">{t("scriptPanel.input.langScript.ja")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-1">
-                <Label className="text-xs">时长</Label>
+                <Label className="text-xs">{t("scriptPanel.input.durationShort")}</Label>
                 <Select
                   value={targetDuration}
                   onValueChange={onDurationChange}
@@ -697,7 +723,7 @@ export function ScriptInput({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {DURATION_OPTIONS.map((opt) => (
+                    {durationOptions.map((opt) => (
                       <SelectItem key={opt.value} value={opt.value}>
                         {opt.label}
                       </SelectItem>
@@ -707,7 +733,7 @@ export function ScriptInput({
               </div>
 
               <div className="space-y-1">
-                <Label className="text-xs">风格</Label>
+                <Label className="text-xs">{t("scriptPanel.input.styleShort")}</Label>
                 <StylePicker
                   value={styleId}
                   onChange={(id) => onStyleChange(id)}
@@ -718,18 +744,18 @@ export function ScriptInput({
 
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
-                <Label className="text-xs">场景数量（可选）</Label>
+                <Label className="text-xs">{t("scriptPanel.input.sceneCountOptional")}</Label>
                 <Select
                   value={sceneCount || ""}
                   onValueChange={(v) => onSceneCountChange?.(v)}
                   disabled={parseStatus === "parsing"}
                 >
                   <SelectTrigger className="h-8 text-xs">
-                    <SelectValue placeholder="自动" />
+                    <SelectValue placeholder={t("scriptPanel.input.auto")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="auto">自动</SelectItem>
-                    {SCENE_COUNT_OPTIONS.map((opt) => (
+                    <SelectItem value="auto">{t("scriptPanel.input.auto")}</SelectItem>
+                    {sceneCountOptions.map((opt) => (
                       <SelectItem key={opt.value} value={opt.value}>
                         {opt.label}
                       </SelectItem>
@@ -739,14 +765,14 @@ export function ScriptInput({
               </div>
 
               <div className="space-y-1">
-                <Label className="text-xs">分镜数量（可选）</Label>
+                <Label className="text-xs">{t("scriptPanel.input.shotCountOptional")}</Label>
                 {showCustomShotInput ? (
                   <div className="flex gap-1">
                     <Input
                       type="number"
                       min="1"
                       max="100"
-                      placeholder="输入数量"
+                      placeholder={t("scriptPanel.input.customCountPlaceholder")}
                       value={customShotValue}
                       onChange={(e) => setCustomShotValue(e.target.value)}
                       onBlur={() => {
@@ -772,7 +798,7 @@ export function ScriptInput({
                         onShotCountChange?.("auto");
                       }}
                     >
-                      取消
+                      {t("scriptPanel.input.cancel")}
                     </Button>
                   </div>
                 ) : (
@@ -788,11 +814,11 @@ export function ScriptInput({
                     disabled={parseStatus === "parsing"}
                   >
                     <SelectTrigger className="h-8 text-xs">
-                      <SelectValue placeholder="自动" />
+                      <SelectValue placeholder={t("scriptPanel.input.auto")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="auto">自动</SelectItem>
-                      {SHOT_COUNT_OPTIONS.map((opt) => (
+                      <SelectItem value="auto">{t("scriptPanel.input.auto")}</SelectItem>
+                      {shotCountOptions.map((opt) => (
                         <SelectItem key={opt.value} value={opt.value}>
                           {opt.label}
                         </SelectItem>
@@ -810,8 +836,8 @@ export function ScriptInput({
           <div className="flex items-start gap-2 p-2 rounded-md bg-yellow-500/10 border border-yellow-500/20">
             <AlertCircle className="h-4 w-4 text-yellow-500 mt-0.5 shrink-0" />
             <div className="text-xs text-yellow-600 dark:text-yellow-400">
-              <p className="font-medium">API 未配置</p>
-              <p className="opacity-80">请在设置中配置API密钥</p>
+              <p className="font-medium">{t("scriptPanel.input.apiNotConfigured")}</p>
+              <p className="opacity-80">{t("scriptPanel.input.apiConfigureHint")}</p>
             </div>
           </div>
         )}
@@ -829,12 +855,12 @@ export function ScriptInput({
               {isImporting ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  导入中...
+                  {t("scriptPanel.input.importing")}
                 </>
               ) : (
                 <>
                   <FileText className="h-4 w-4 mr-2" />
-                  导入完整剧本
+                  {t("scriptPanel.input.importFullScript")}
                 </>
               )}
             </Button>
@@ -851,12 +877,12 @@ export function ScriptInput({
               {isCalibrating || calibrationStatus === 'calibrating' ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  AI校准中...
+                  {t("scriptPanel.input.calibratingTitles")}
                 </>
               ) : (
                 <>
                   <RefreshCw className="h-4 w-4 mr-2" />
-                  AI校准（生成{missingTitleCount}集标题）
+                  {t("scriptPanel.input.calibrateTitles", { count: missingTitleCount ?? 0 })}
                 </>
               )}
             </Button>
@@ -873,15 +899,16 @@ export function ScriptInput({
               {isGeneratingSynopsis || synopsisStatus === 'generating' ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  生成大纲中...
+                  {t("scriptPanel.input.generatingSynopsis")}
                 </>
               ) : (
                 <>
                   <BookOpen className="h-4 w-4 mr-2" />
-                  {(missingSynopsisCount ?? 0) > 0 
-                    ? `生成大纲（${missingSynopsisCount}集缺失）`
-                    : '重新生成大纲'
-                  }
+                  {(missingSynopsisCount ?? 0) > 0
+                    ? t("scriptPanel.input.generateSynopsisMissing", {
+                        count: missingSynopsisCount ?? 0,
+                      })
+                    : t("scriptPanel.input.regenerateSynopsis")}
                 </>
               )}
             </Button>
@@ -898,12 +925,12 @@ export function ScriptInput({
               {parseStatus === "parsing" ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  解析中...
+                  {t("scriptPanel.input.parsing")}
                 </>
               ) : (
                 <>
                   <Wand2 className="h-4 w-4 mr-2" />
-                  AI解析剧本
+                  {t("scriptPanel.input.parseScript")}
                 </>
               )}
             </Button>

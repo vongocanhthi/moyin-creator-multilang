@@ -72,6 +72,7 @@ import { EpisodeTree } from "./episode-tree";
 import { PropertyPanel } from "./property-panel";
 import { FileText } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { getStyleTokens, DEFAULT_STYLE_ID } from "@/lib/constants/visual-styles";
 import {
   ResizableHandle,
@@ -91,6 +92,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export function ScriptView() {
+  const { t } = useTranslation();
   const { activeProjectId } = useProjectStore();
   const scriptProject = useActiveScriptProject();
   const {
@@ -2348,13 +2350,13 @@ export function ScriptView() {
         <div className="flex items-center justify-between">
           <h2 className="font-semibold text-sm flex items-center gap-2">
             <FileText className="h-4 w-4" />
-            剧本编辑
+            {t("scriptPanel.header.title")}
           </h2>
           <span className="text-xs text-muted-foreground">
             {parseStatus === "parsing"
-              ? "解析中..."
+              ? t("scriptPanel.header.parsing")
               : scriptProject?.shotStatus === "generating"
-              ? "分镜生成中..."
+              ? t("scriptPanel.header.generatingShots")
               : parseStatus === "ready" && scriptData
               ? `${scriptData.title}`
               : ""}

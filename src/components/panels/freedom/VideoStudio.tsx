@@ -1,6 +1,8 @@
 "use client";
 
+import type { TFunction } from 'i18next';
 import { useMemo, useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { VideoIcon, Loader2, Download, Sparkles, Upload, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -26,6 +28,8 @@ interface LocalUploadAsset {
   fileName: string;
   mimeType: string;
 }
+
+const FILE_READ_FAILED = 'FILE_READ_FAILED';
 
 function resolveVideoCapabilityModelId(modelId: string): string {
   const lower = modelId.toLowerCase();
@@ -64,7 +68,7 @@ function fileToDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(String(reader.result || ''));
-    reader.onerror = () => reject(new Error('文件读取失败'));
+    reader.onerror = () => reject(new Error(FILE_READ_FAILED));
     reader.readAsDataURL(file);
   });
 }
@@ -75,32 +79,33 @@ function getVeoUploadValidationError(
   firstFrameUpload: LocalUploadAsset | null,
   lastFrameUpload: LocalUploadAsset | null,
   referenceUploads: LocalUploadAsset[],
+  t: TFunction,
 ): string | null {
   if (!capability.isVeo || capability.mode === 'none') return null;
 
   if (capability.mode === 'single') {
     if (capability.minFiles > 0 && !singleUpload && !firstFrameUpload) {
-      return '当前模型需要上传 1 张图片';
+      return t('freedom.video.veoNeedOneImage');
     }
     return null;
   }
 
   if (capability.mode === 'first_last') {
     if (capability.minFiles > 0 && !firstFrameUpload) {
-      return '当前模型需要上传首帧图片';
+      return t('freedom.video.veoNeedFirstFrame');
     }
     if (!firstFrameUpload && lastFrameUpload) {
-      return '请先上传首帧图，再上传尾帧图';
+      return t('freedom.video.veoFirstBeforeLast');
     }
     return null;
   }
 
   if (capability.mode === 'multi') {
     if (referenceUploads.length < capability.minFiles) {
-      return `当前模型至少需要 ${capability.minFiles} 张参考图`;
+      return t('freedom.video.veoMinRefs', { n: capability.minFiles });
     }
     if (referenceUploads.length > capability.maxFiles) {
-      return `当前模型最多支持 ${capability.maxFiles} 张参考图`;
+      return t('freedom.video.veoMaxRefs', { n: capability.maxFiles });
     }
   }
 
@@ -161,6 +166,7 @@ function buildVeoUploadFiles(
 }
 
 export function VideoStudio() {
+  const { t } = useTranslation();
   const {
     videoPrompt, setVideoPrompt,
     selectedVideoModel, setSelectedVideoModel,
@@ -225,10 +231,15 @@ export function VideoStudio() {
     try {
       setSingleUpload(await toAsset(file));
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : '读取文件失败';
-      toast.error(message);
+      toast.error(
+        err instanceof Error && err.message === FILE_READ_FAILED
+          ? t('freedom.common.fileReadFailed')
+          : err instanceof Error
+            ? err.message
+            : t('freedom.common.fileReadFailed')
+      );
     }
-  }, [toAsset]);
+  }, [toAsset, t]);
 
   const handleFirstFrameChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -237,10 +248,15 @@ export function VideoStudio() {
     try {
       setFirstFrameUpload(await toAsset(file));
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : '读取文件失败';
-      toast.error(message);
+      toast.error(
+        err instanceof Error && err.message === FILE_READ_FAILED
+          ? t('freedom.common.fileReadFailed')
+          : err instanceof Error
+            ? err.message
+            : t('freedom.common.fileReadFailed')
+      );
     }
-  }, [toAsset]);
+  }, [toAsset, t]);
 
   const handleLastFrameChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -249,27 +265,37 @@ export function VideoStudio() {
     try {
       setLastFrameUpload(await toAsset(file));
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : '读取文件失败';
-      toast.error(message);
+      toast.error(
+        err instanceof Error && err.message === FILE_READ_FAILED
+          ? t('freedom.common.fileReadFailed')
+          : err instanceof Error
+            ? err.message
+            : t('freedom.common.fileReadFailed')
+      );
     }
-  }, [toAsset]);
+  }, [toAsset, t]);
 
   const handleReferenceChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file) return;
     if (referenceUploads.length >= Math.max(veoCapability.maxFiles, 1)) {
-      toast.error(`当前模型最多支持 ${veoCapability.maxFiles} 张参考图`);
+      toast.error(t('freedom.video.veoMaxRefs', { n: veoCapability.maxFiles }));
       return;
     }
     try {
       const asset = await toAsset(file);
       setReferenceUploads((prev) => [...prev, asset]);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : '读取文件失败';
-      toast.error(message);
+      toast.error(
+        err instanceof Error && err.message === FILE_READ_FAILED
+          ? t('freedom.common.fileReadFailed')
+          : err instanceof Error
+            ? err.message
+            : t('freedom.common.fileReadFailed')
+      );
     }
-  }, [referenceUploads.length, toAsset, veoCapability.maxFiles]);
+  }, [referenceUploads.length, toAsset, veoCapability.maxFiles, t]);
 
   const removeReference = useCallback((id: string) => {
     setReferenceUploads((prev) => prev.filter((item) => item.id !== id));
@@ -321,7 +347,7 @@ export function VideoStudio() {
           className="h-24 w-full rounded border border-dashed flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-foreground hover:border-primary/40"
         >
           <Upload className="h-4 w-4" />
-          <span className="text-xs">上传图片</span>
+          <span className="text-xs">{t('freedom.video.uploadImage')}</span>
         </button>
       )}
       {asset && (
@@ -333,7 +359,7 @@ export function VideoStudio() {
           onClick={onPick}
           disabled={videoGenerating}
         >
-          更换
+          {t('freedom.video.replace')}
         </Button>
       )}
     </div>
@@ -341,7 +367,7 @@ export function VideoStudio() {
 
   const handleGenerate = useCallback(async () => {
     if (!videoPrompt.trim()) {
-      toast.error('请输入描述文字');
+      toast.error(t('freedom.common.promptRequired'));
       return;
     }
 
@@ -351,6 +377,7 @@ export function VideoStudio() {
       firstFrameUpload,
       lastFrameUpload,
       referenceUploads,
+      t,
     );
     if (uploadError) {
       toast.error(uploadError);
@@ -388,10 +415,10 @@ export function VideoStudio() {
         type: 'video',
       });
 
-      toast.success('视频生成成功！已保存到素材库');
+      toast.success(t('freedom.video.toastOk'));
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : '未知错误';
-      toast.error(`生成失败: ${message}`);
+      const message = err instanceof Error ? err.message : t('freedom.video.unknownError');
+      toast.error(t('freedom.video.toastFail', { error: message }));
     } finally {
       setVideoGenerating(false);
     }
@@ -410,6 +437,7 @@ export function VideoStudio() {
     selectedVideoModel,
     veoUploadFiles,
     addHistoryEntry,
+    t,
   ]);
 
   return (
@@ -420,7 +448,7 @@ export function VideoStudio() {
           <div className="p-4 space-y-5">
             {/* Model Selection */}
             <div className="space-y-2">
-              <Label className="text-sm font-medium">模型选择</Label>
+              <Label className="text-sm font-medium">{t('freedom.video.model')}</Label>
               <ModelSelector
                 type="video"
                 value={selectedVideoModel}
@@ -434,7 +462,7 @@ export function VideoStudio() {
             {/* Aspect Ratio */}
             {aspectRatios.length > 0 && (
               <div className="space-y-2">
-                <Label className="text-sm font-medium">宽高比</Label>
+                <Label className="text-sm font-medium">{t('freedom.video.aspectRatio')}</Label>
                 <div className="flex flex-wrap gap-1.5">
                   {aspectRatios.map((ratio) => (
                     <Button
@@ -454,7 +482,7 @@ export function VideoStudio() {
             {/* Duration */}
             {durations.length > 0 && (
               <div className="space-y-2">
-                <Label className="text-sm font-medium">时长 (秒)</Label>
+                <Label className="text-sm font-medium">{t('freedom.video.durationSec')}</Label>
                 <div className="flex flex-wrap gap-1.5">
                   {durations.map((d) => (
                     <Button
@@ -474,10 +502,10 @@ export function VideoStudio() {
             {/* Resolution */}
             {resolutions.length > 0 && (
               <div className="space-y-2">
-                <Label className="text-sm font-medium">分辨率</Label>
+                <Label className="text-sm font-medium">{t('freedom.video.resolution')}</Label>
                 <Select value={videoResolution} onValueChange={setVideoResolution}>
                   <SelectTrigger className="h-9">
-                    <SelectValue placeholder="选择分辨率" />
+                    <SelectValue placeholder={t('freedom.video.selectResolution')} />
                   </SelectTrigger>
                   <SelectContent>
                     {resolutions.map((r) => (
@@ -491,15 +519,15 @@ export function VideoStudio() {
             {/* Veo Dynamic Uploads */}
             {veoCapability.isVeo && (
               <div className="space-y-2">
-                <Label className="text-sm font-medium">上传素材（Veo）</Label>
+                <Label className="text-sm font-medium">{t('freedom.video.uploadVeo')}</Label>
                 {veoCapability.mode === 'none' ? (
                   <p className="text-xs text-muted-foreground rounded-md border px-2 py-2">
-                    当前模型仅文生视频，不需要上传图片。
+                    {t('freedom.video.veoT2vOnly')}
                   </p>
                 ) : (
                   <div className="space-y-2">
                     {veoCapability.mode === 'single' && renderUploadSlot(
-                      '参考图',
+                      t('freedom.video.refImage'),
                       singleUpload || firstFrameUpload,
                       () => singleInputRef.current?.click(),
                       () => {
@@ -512,14 +540,14 @@ export function VideoStudio() {
                     {veoCapability.mode === 'first_last' && (
                       <div className="grid grid-cols-2 gap-2">
                         {renderUploadSlot(
-                          '首帧图',
+                          t('freedom.video.firstFrame'),
                           firstFrameUpload,
                           () => firstInputRef.current?.click(),
                           () => setFirstFrameUpload(null),
                           veoCapability.minFiles > 0,
                         )}
                         {renderUploadSlot(
-                          '尾帧图',
+                          t('freedom.video.lastFrame'),
                           lastFrameUpload,
                           () => lastInputRef.current?.click(),
                           () => setLastFrameUpload(null),
@@ -535,7 +563,7 @@ export function VideoStudio() {
                             <div key={asset.id} className="relative rounded border overflow-hidden">
                               <img
                                 src={asset.dataUrl}
-                                alt={`参考图 ${index + 1}`}
+                                alt={`${t('freedom.video.refImage')} ${index + 1}`}
                                 className="h-20 w-full object-cover"
                               />
                               <button
@@ -554,12 +582,12 @@ export function VideoStudio() {
                               className="h-20 rounded border border-dashed flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-foreground hover:border-primary/40"
                             >
                               <Upload className="h-4 w-4" />
-                              <span className="text-[11px]">添加</span>
+                              <span className="text-[11px]">{t('freedom.video.add')}</span>
                             </button>
                           )}
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          已上传 {referenceUploads.length}/{veoCapability.maxFiles} 张参考图
+                          {t('freedom.video.refCount', { current: referenceUploads.length, max: veoCapability.maxFiles })}
                         </p>
                       </div>
                     )}
@@ -570,9 +598,9 @@ export function VideoStudio() {
 
             {/* Prompt */}
             <div className="space-y-2">
-              <Label className="text-sm font-medium">描述文字</Label>
+              <Label className="text-sm font-medium">{t('freedom.video.prompt')}</Label>
               <Textarea
-                placeholder="描述你想生成的视频..."
+                placeholder={t('freedom.video.promptPlaceholder')}
                 value={videoPrompt}
                 onChange={(e) => setVideoPrompt(e.target.value)}
                 className="min-h-[120px] resize-none"
@@ -615,9 +643,9 @@ export function VideoStudio() {
               disabled={videoGenerating || !videoPrompt.trim()}
             >
               {videoGenerating ? (
-                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> 生成中...</>
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t('freedom.video.generating')}</>
               ) : (
-                <><Sparkles className="mr-2 h-4 w-4" /> 生成视频</>
+                <><Sparkles className="mr-2 h-4 w-4" />{t('freedom.video.generate')}</>
               )}
             </Button>
           </div>
@@ -629,7 +657,7 @@ export function VideoStudio() {
         {videoGenerating ? (
           <div className="flex flex-col items-center gap-4">
             <Loader2 className="h-12 w-12 animate-spin text-primary" />
-            <p className="text-sm text-muted-foreground">视频生成中，请稍候（可能需要 1-4 分钟）...</p>
+            <p className="text-sm text-muted-foreground">{t('freedom.video.generatingWait')}</p>
           </div>
         ) : videoResult ? (
           <div className="max-w-full max-h-full relative group">
@@ -643,7 +671,7 @@ export function VideoStudio() {
             <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
               <Button size="sm" variant="secondary" asChild>
                 <a href={videoResult} download target="_blank" rel="noopener">
-                  <Download className="h-4 w-4 mr-1" /> 下载
+                  <Download className="h-4 w-4 mr-1" />{t('freedom.video.download')}
                 </a>
               </Button>
             </div>
@@ -651,8 +679,8 @@ export function VideoStudio() {
         ) : (
           <div className="flex flex-col items-center gap-3 text-muted-foreground">
             <VideoIcon className="h-16 w-16 opacity-20" />
-            <p className="text-lg font-medium">视频工作室</p>
-            <p className="text-sm">选择模型，输入描述，生成你想要的视频</p>
+            <p className="text-lg font-medium">{t('freedom.video.emptyTitle')}</p>
+            <p className="text-sm">{t('freedom.video.emptyDesc')}</p>
           </div>
         )}
       </div>

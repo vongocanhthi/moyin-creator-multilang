@@ -8,7 +8,8 @@
  * Shows selected character's preview images, info, and actions
  */
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useCharacterLibraryStore, type Character } from "@/stores/character-library-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,36 +38,43 @@ import { WardrobeModal } from "./wardrobe-modal";
 import { LocalImage } from "@/components/ui/local-image";
 import { ImagePreviewModal } from "@/components/panels/director/media-preview-modal";
 
-// View type labels
-const VIEW_LABELS: Record<string, string> = {
-  front: "正面",
-  side: "侧面",
-  back: "背面",
-  "three-quarter": "四分之三",
-};
-
-// Gender labels
-const GENDER_LABELS: Record<string, string> = {
-  male: "男",
-  female: "女",
-  other: "其他",
-};
-
-// Age labels
-const AGE_LABELS: Record<string, string> = {
-  child: "儿童",
-  teen: "青少年",
-  "young-adult": "青年",
-  adult: "中年",
-  senior: "老年",
-};
-
 interface CharacterDetailProps {
   character: Character | null;
 }
 
 export function CharacterDetail({ character }: CharacterDetailProps) {
+  const { t } = useTranslation();
   const { updateCharacter, deleteCharacter, selectCharacter } = useCharacterLibraryStore();
+
+  const viewLabels = useMemo(
+    () => ({
+      front: t("characters.viewTypes.front"),
+      side: t("characters.viewTypes.side"),
+      back: t("characters.viewTypes.back"),
+      "three-quarter": t("characters.viewTypes.threeQuarter"),
+    }),
+    [t]
+  );
+
+  const genderLabels = useMemo(
+    () => ({
+      male: t("characters.gender.male"),
+      female: t("characters.gender.female"),
+      other: t("characters.gender.other"),
+    }),
+    [t]
+  );
+
+  const ageLabels = useMemo(
+    () => ({
+      child: t("characters.age.child"),
+      teen: t("characters.age.teen"),
+      "young-adult": t("characters.age.youngAdult"),
+      adult: t("characters.age.adult"),
+      senior: t("characters.age.senior"),
+    }),
+    [t]
+  );
   
   const [isEditingName, setIsEditingName] = useState(false);
   const [editName, setEditName] = useState("");
@@ -84,7 +92,7 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
           <User className="h-6 w-6 text-muted-foreground" />
         </div>
         <p className="text-sm text-muted-foreground">
-          选择一个角色查看详情
+          {t("characters.detail.selectPrompt")}
         </p>
       </div>
     );
@@ -93,23 +101,23 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
   const handleSaveName = () => {
     if (editName.trim() && editName.trim() !== character.name) {
       updateCharacter(character.id, { name: editName.trim() });
-      toast.success("名称已更新");
+      toast.success(t("characters.detail.nameUpdated"));
     }
     setIsEditingName(false);
   };
 
   const handleDelete = () => {
-    if (confirm(`确定要删除角色 "${character.name}" 吗？`)) {
+    if (confirm(t("characters.detail.confirmDelete", { name: character.name }))) {
       deleteCharacter(character.id);
       selectCharacter(null);
-      toast.success("角色已删除");
+      toast.success(t("characters.detail.deleted"));
     }
   };
 
   const handleSaveNotes = () => {
     updateCharacter(character.id, { notes: editNotes.trim() || undefined });
     setIsEditingNotes(false);
-    toast.success("备注已更新");
+    toast.success(t("characters.detail.notesUpdated"));
   };
 
   const handleAddTag = () => {
@@ -118,7 +126,7 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
     const currentTags = character.tags || [];
     if (!currentTags.includes(tag)) {
       updateCharacter(character.id, { tags: [...currentTags, tag] });
-      toast.success("标签已添加");
+      toast.success(t("characters.detail.tagAdded"));
     }
     setNewTag("");
   };
@@ -159,10 +167,10 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-      toast.success(`${name}.png 导出成功`);
+      toast.success(t("characters.detail.exportOk", { name }));
     } catch (err) {
-      console.error('Export image failed:', err);
-      toast.error('导出失败');
+      console.error("Export image failed:", err);
+      toast.error(t("characters.detail.exportFailed"));
     }
   };
 
@@ -216,7 +224,7 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
           <div className="space-y-2">
             <div 
               className="aspect-square rounded-lg bg-muted overflow-hidden border relative cursor-zoom-in"
-              title="双击查看完整图片"
+              title={t("characters.detail.dblViewFull")}
               draggable
               onDoubleClick={() => {
                 const url = currentView?.imageUrl || character.thumbnailUrl;
@@ -236,7 +244,7 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
             {currentView ? (
                 <LocalImage 
                   src={currentView.imageUrl} 
-                  alt={`${character.name} - ${VIEW_LABELS[currentView.viewType] || currentView.viewType}`}
+                  alt={`${character.name} - ${viewLabels[currentView.viewType as keyof typeof viewLabels] || currentView.viewType}`}
                   className="w-full h-full object-contain"
                 />
               ) : character.thumbnailUrl ? (
@@ -272,7 +280,7 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
                   >
                     <LocalImage 
                       src={view.imageUrl} 
-                      alt={VIEW_LABELS[view.viewType] || view.viewType}
+                      alt={viewLabels[view.viewType as keyof typeof viewLabels] || view.viewType}
                       className="w-full h-full object-cover"
                     />
                   </button>
@@ -285,18 +293,18 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
 
           {/* Character info */}
           <div className="space-y-3">
-            <div className="text-xs font-medium text-muted-foreground">角色信息</div>
+            <div className="text-xs font-medium text-muted-foreground">{t("characters.detail.sectionInfo")}</div>
             
             {/* Basic info badges */}
             <div className="flex flex-wrap gap-1.5">
               {character.gender && (
                 <Badge variant="secondary" className="text-xs">
-                  {GENDER_LABELS[character.gender] || character.gender}
+                  {genderLabels[character.gender as keyof typeof genderLabels] || character.gender}
                 </Badge>
               )}
               {character.age && (
                 <Badge variant="secondary" className="text-xs">
-                  {AGE_LABELS[character.age] || character.age}
+                  {ageLabels[character.age as keyof typeof ageLabels] || character.age}
                 </Badge>
               )}
               {character.personality && (
@@ -309,7 +317,7 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
             {/* Description */}
             {character.description && (
               <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">描述</Label>
+                <Label className="text-xs text-muted-foreground">{t("characters.detail.labelDesc")}</Label>
                 <p className="text-xs whitespace-pre-wrap bg-muted rounded p-2 max-h-[120px] overflow-y-auto">
                   {character.description}
                 </p>
@@ -319,7 +327,7 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
             {/* Visual traits */}
             {character.visualTraits && (
               <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">视觉特征</Label>
+                <Label className="text-xs text-muted-foreground">{t("characters.detail.labelVisualTraits")}</Label>
                 <p className="text-xs text-muted-foreground bg-muted rounded p-2">
                   {character.visualTraits}
                 </p>
@@ -331,7 +339,7 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
               <div className="flex items-center justify-between">
                 <Label className="text-xs text-muted-foreground flex items-center gap-1">
                   <StickyNote className="h-3 w-3" />
-                  角色备注
+                  {t("characters.detail.notesLabel")}
                 </Label>
                 {!isEditingNotes && (
                   <Button
@@ -352,22 +360,22 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
                   <Textarea
                     value={editNotes}
                     onChange={(e) => setEditNotes(e.target.value)}
-                    placeholder="添加剧情相关的备注..."
+                    placeholder={t("characters.detail.notesPlaceholder")}
                     className="text-xs min-h-[60px]"
                     autoFocus
                   />
                   <div className="flex gap-1">
                     <Button size="sm" className="h-6 text-xs" onClick={handleSaveNotes}>
-                      保存
+                      {t("characters.detail.save")}
                     </Button>
                     <Button size="sm" variant="ghost" className="h-6 text-xs" onClick={() => setIsEditingNotes(false)}>
-                      取消
+                      {t("characters.detail.cancel")}
                     </Button>
                   </div>
                 </div>
               ) : (
                 <p className="text-xs bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800 rounded p-2 text-indigo-800 dark:text-indigo-200">
-                  {character.notes || '点击编辑添加备注...'}
+                  {character.notes || t("characters.detail.notesEmpty")}
                 </p>
               )}
             </div>
@@ -378,7 +386,7 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
             <div className="space-y-2">
               <Label className="text-xs text-muted-foreground flex items-center gap-1">
                 <Tag className="h-3 w-3" />
-                角色标签
+                {t("characters.detail.tagsLabel")}
               </Label>
               <div className="flex flex-wrap gap-1">
                 {(character.tags || []).map((tag) => (
@@ -397,7 +405,7 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
                 <Input
                   value={newTag}
                   onChange={(e) => setNewTag(e.target.value)}
-                  placeholder="添加标签..."
+                  placeholder={t("characters.detail.tagPlaceholder")}
                   className="h-7 text-xs"
                   onKeyDown={(e) => e.key === "Enter" && handleAddTag()}
                 />
@@ -410,13 +418,13 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
             {/* Reference images */}
             {character.referenceImages && character.referenceImages.length > 0 && (
               <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">参考图片</Label>
+                <Label className="text-xs text-muted-foreground">{t("characters.detail.refImages")}</Label>
                 <div className="flex gap-1.5">
                   {character.referenceImages.map((img, i) => (
                     <img
                       key={i}
                       src={img}
-                      alt={`参考图 ${i + 1}`}
+                      alt={t("characters.detail.refAlt", { n: i + 1 })}
                       className="w-10 h-10 object-cover rounded border"
                     />
                   ))}
@@ -436,7 +444,7 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
               onClick={() => setShowWardrobe(true)}
             >
               <Shirt className="h-4 w-4 mr-2" />
-              衣橱 ({variationCount})
+              {t("characters.detail.wardrobe", { count: variationCount })}
             </Button>
 
             {currentView && (
@@ -447,7 +455,7 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
                 onClick={() => handleExportImage(currentView.imageUrl, `${character.name}-${currentView.viewType}`)}
               >
                 <Download className="h-4 w-4 mr-2" />
-                导出当前视图
+                {t("characters.detail.exportView")}
               </Button>
             )}
 
@@ -458,13 +466,13 @@ export function CharacterDetail({ character }: CharacterDetailProps) {
               onClick={handleDelete}
             >
               <Trash2 className="h-4 w-4 mr-2" />
-              删除角色
+              {t("characters.detail.delete")}
             </Button>
           </div>
 
           {/* Tips */}
           <div className="text-xs text-muted-foreground space-y-1">
-            <p>💡 拖拽角色图片到 AI 导演面板使用</p>
+            <p>💡 {t("characters.detail.dragHint")}</p>
           </div>
         </div>
       </ScrollArea>

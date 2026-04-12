@@ -1,6 +1,7 @@
 // Copyright (c) 2025 hotflow2024
 // Licensed under AGPL-3.0-or-later. See LICENSE for details.
 // Commercial licensing available. See COMMERCIAL_LICENSE.md.
+
 "use client";
 
 /**
@@ -8,6 +9,7 @@
  * 默认风格和自定义风格共用
  */
 
+import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { LocalImage } from "@/components/ui/local-image";
 import type { StyleCategory } from "@/lib/constants/visual-styles";
@@ -20,11 +22,11 @@ const CATEGORY_COLORS: Record<string, string> = {
   'stop_motion': 'bg-purple-500/20 text-purple-600',
 };
 
-const CATEGORY_LABELS: Record<string, string> = {
-  '3d': '3D',
-  '2d': '2D',
-  'real': '真人',
-  'stop_motion': '定格',
+const CATEGORY_I18N: Partial<Record<StyleCategory, string>> = {
+  '3d': 'cat3d',
+  '2d': 'cat2d',
+  'real': 'catReal',
+  'stop_motion': 'catStopMotion',
 };
 
 interface StyleCardProps {
@@ -48,8 +50,15 @@ export function StyleCard({
   onClick,
   onDoubleClick,
 }: StyleCardProps) {
+  const { t } = useTranslation();
   // 自定义风格用第一张参考图
   const customImage = isCustom ? referenceImages?.[0] : undefined;
+
+  const categoryLabel = category
+    ? CATEGORY_I18N[category]
+      ? t(`assets.styleCard.${CATEGORY_I18N[category]}`)
+      : category
+    : "";
 
   return (
     <div
@@ -76,17 +85,17 @@ export function StyleCard({
             "w-full h-full flex flex-col items-center justify-center",
             CATEGORY_COLORS[category] || 'bg-muted/30'
           )}>
-            <div className="text-lg font-bold">{CATEGORY_LABELS[category] || category}</div>
+            <div className="text-lg font-bold">{categoryLabel}</div>
           </div>
         ) : (
           <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">
-            无参考图
+            {t("assets.styleCard.noRef")}
           </div>
         )}
         {/* 自定义标记 */}
         {isCustom && (
           <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded text-[10px] bg-primary/80 text-primary-foreground">
-            自定义
+            {t("assets.styleCard.custom")}
           </div>
         )}
       </div>

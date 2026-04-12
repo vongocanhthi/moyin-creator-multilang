@@ -9,12 +9,15 @@
  */
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { STYLE_CATEGORIES, type StylePreset } from "@/lib/constants/visual-styles";
+import { getCategoryUiLabel, getStyleUiLabels } from "@/lib/i18n/visual-style-ui";
 import { StyleCard } from "./StyleCard";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChevronDown, ChevronRight } from "lucide-react";
 
 export function DefaultStylesGrid() {
+  const { t, i18n } = useTranslation();
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
     new Set(STYLE_CATEGORIES.map((c) => c.id))
   );
@@ -33,9 +36,11 @@ export function DefaultStylesGrid() {
     <ScrollArea className="h-full">
       <div className="p-4 space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-foreground">默认风格</h2>
+          <h2 className="text-sm font-semibold text-foreground">{t("assets.defaultGrid.title")}</h2>
           <span className="text-xs text-muted-foreground">
-            {STYLE_CATEGORIES.reduce((n, c) => n + c.styles.length, 0)} 个预设
+            {t("assets.defaultGrid.presetCount", {
+              count: STYLE_CATEGORIES.reduce((n, c) => n + c.styles.length, 0),
+            })}
           </span>
         </div>
 
@@ -51,23 +56,26 @@ export function DefaultStylesGrid() {
               ) : (
                 <ChevronRight className="w-3.5 h-3.5" />
               )}
-              {category.name}
+              {getCategoryUiLabel(category.id, i18n.language)}
               <span className="text-muted-foreground/60 ml-1">({category.styles.length})</span>
             </button>
 
             {/* 风格网格 */}
             {expandedCategories.has(category.id) && (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 mt-2">
-                {category.styles.map((style: StylePreset) => (
-                  <StyleCard
-                    key={style.id}
-                    name={style.name}
-                    description={style.description}
-                    category={style.category}
-                    isSelected={selectedId === style.id}
-                    onClick={() => setSelectedId(style.id)}
-                  />
-                ))}
+                {category.styles.map((style: StylePreset) => {
+                  const labels = getStyleUiLabels(style, i18n.language);
+                  return (
+                    <StyleCard
+                      key={style.id}
+                      name={labels.name}
+                      description={labels.description}
+                      category={style.category}
+                      isSelected={selectedId === style.id}
+                      onClick={() => setSelectedId(style.id)}
+                    />
+                  );
+                })}
               </div>
             )}
           </div>

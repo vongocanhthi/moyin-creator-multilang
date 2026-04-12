@@ -3,17 +3,7 @@
 // Commercial licensing available. See COMMERCIAL_LICENSE.md.
 
 import { APP_GITHUB_DOCS_BASE } from "@/config/github-repo";
-import type { AppLocale } from "@/types/locale";
-
-/** GitHub URL for the workflow guide markdown matching the app UI language. */
-export function getWorkflowGuideDocUrl(locale: AppLocale): string {
-  switch (locale) {
-    case "vi":
-      return `${APP_GITHUB_DOCS_BASE}WORKFLOW_GUIDE_VI.md`;
-    case "zh":
-      return `${APP_GITHUB_DOCS_BASE}WORKFLOW_GUIDE.md`;
-    case "en":
-    default:
-      return `${APP_GITHUB_DOCS_BASE}WORKFLOW_GUIDE_EN.md`;
-  }
+/** GitHub URL for the workflow guide (English, canonical). */
+export function getWorkflowGuideDocUrl(): string {
+  return `${APP_GITHUB_DOCS_BASE}WORKFLOW_GUIDE.md`;
 }

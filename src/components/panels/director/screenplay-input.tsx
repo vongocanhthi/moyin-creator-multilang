@@ -9,6 +9,7 @@
  */
 
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useDirectorStore, useActiveDirectorProject } from "@/stores/director-store";
@@ -52,12 +53,7 @@ import { uploadMultipleImages } from "@/lib/utils/image-upload";
 import { VISUAL_STYLE_PRESETS, getStyleTokens, getStylesByCategory, type VisualStyleId, DEFAULT_STYLE_ID } from "@/lib/constants/visual-styles";
 import { StylePicker } from "@/components/ui/style-picker";
 
-const EXAMPLE_PROMPTS = [
-  "一只可爱的小猫在草地上玩耍，追逐蝴蝶",
-  "两个好朋友在公园里散步，分享快乐时光",
-  "小兔子和小熊在森林里冒险，发现神秘的宝藏",
-  "一个小女孩在海边堆沙堡，海浪轻轻拍打",
-];
+const EXAMPLE_KEYS = ["example1", "example2", "example3", "example4"] as const;
 
 type StyleId = VisualStyleId | "random";
 
@@ -83,6 +79,11 @@ interface ScreenplayInputProps {
 }
 
 export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) {
+  const { t } = useTranslation();
+  const examplePrompts = useMemo(
+    () => EXAMPLE_KEYS.map((k) => t(`director.screenplay.${k}`)),
+    [t]
+  );
   const activeDirectorProject = useActiveDirectorProject();
   const savedConfig = activeDirectorProject?.storyboardConfig;
   const savedDraft = activeDirectorProject?.screenplayDraft;
@@ -299,7 +300,7 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
       if (data.type === "character") {
         // Check if already added
         if (selectedCharacters.some(c => c.characterId === data.characterId)) {
-          toast.info("该角色已添加");
+          toast.info(t("director.screenplay.toastCharacterAdded"));
           return;
         }
 
@@ -311,12 +312,12 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
         };
 
         setSelectedCharacters(prev => [...prev, newChar]);
-        toast.success(`已添加角色: ${data.characterName}`);
+        toast.success(t("director.screenplay.toastCharacterAddOk", { name: data.characterName }));
       }
     } catch (err) {
       // Not a valid character drop
     }
-  }, [selectedCharacters]);
+  }, [selectedCharacters, t]);
 
   // Remove character
   const removeCharacter = (characterId: string) => {
@@ -351,10 +352,16 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
   const buildPromptWithCharacters = () => {
     let fullPrompt = prompt;
     if (selectedCharacters.length > 0) {
+      const traitsFallback = t("director.screenplay.charTraitsAi");
       const characterDescriptions = selectedCharacters
-        .map(c => `角色"${c.characterName}": ${c.visualTraits || '由AI根据名字设计'}`)
+        .map((c) =>
+          t("director.screenplay.charDesc", {
+            name: c.characterName,
+            traits: c.visualTraits || traitsFallback,
+          })
+        )
         .join("; ");
-      fullPrompt = `${prompt}\n\n包含以下角色: ${characterDescriptions}`;
+      fullPrompt = `${prompt}\n\n${t("director.screenplay.includedCharactersPrefix")} ${characterDescriptions}`;
     }
     return fullPrompt;
   };
@@ -396,7 +403,7 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
 
   const handleSubmit = async () => {
     if (!prompt.trim()) {
-      toast.error("请输入剧本描述");
+      toast.error(t("director.screenplay.errPromptRequired"));
       return;
     }
 
@@ -407,22 +414,28 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
       try {
         const actualStyleTokens = getSelectedStyleTokens();
         const rawCharacterImages = getCharacterReferenceImages();
-        const characterDescriptions = selectedCharacters.map(
-          c => `${c.characterName}: ${c.visualTraits || '由AI根据名字设计'}`
+        const traitsFallback = t("director.screenplay.charTraitsAi");
+        const characterDescriptions = selectedCharacters.map((c) =>
+          t("director.screenplay.charLine", {
+            name: c.characterName,
+            traits: c.visualTraits || traitsFallback,
+          })
         );
 
         // Upload base64 images to get HTTP URLs (API only accepts URLs)
         let characterReferenceImages: string[] = [];
         if (rawCharacterImages.length > 0) {
-          toast.info('正在上传角色参考图...');
+          toast.info(t("director.screenplay.uploadingRefs"));
           try {
             characterReferenceImages = await uploadMultipleImages(rawCharacterImages);
             if (characterReferenceImages.length > 0) {
-              toast.success(`成功上传 ${characterReferenceImages.length} 张角色参考图`);
+              toast.success(
+                t("director.screenplay.uploadRefsOk", { count: characterReferenceImages.length })
+              );
             }
           } catch (uploadError) {
             console.warn('[ScreenplayInput] Failed to upload character images:', uploadError);
-            toast.warning('角色参考图上传失败，将不使用角色参考图');
+            toast.warning(t("director.screenplay.uploadRefsWarn"));
           }
         }
 
@@ -448,7 +461,7 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
     // Legacy workflow: Check API keys for chat
     const chatReady = isFeatureConfigured('script_analysis') || checkChatKeys().isAllConfigured;
     if (!chatReady) {
-      toast.error('请在设置中配置「剧本分析/对话」的服务映射');
+      toast.error(t("director.screenplay.errChatService"));
       return;
     }
 
@@ -492,12 +505,12 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
       // DirectorStore will be updated via onScreenplayGenerated callback
       useDirectorStore.getState().onScreenplayGenerated(screenplay);
       
-      toast.success("剧本生成成功！");
+      toast.success(t("director.screenplay.toastScreenplayOk"));
     } catch (error) {
       const err = error as Error;
       console.error("[ScreenplayInput] Generation failed:", err);
       setScreenplayError(err.message);
-      toast.error(`剧本生成失败: ${err.message}`);
+      toast.error(t("director.screenplay.toastScreenplayFail", { message: err.message }));
     } finally {
       setIsSubmitting(false);
     }
@@ -507,13 +520,20 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
     setPrompt(example);
   };
 
+  const sceneCountWarning = !isSceneCountValid
+    ? t("director.screenplay.sceneCountExceedsLimit", {
+        resolution,
+        limit: sceneValidation.limit,
+      })
+    : "";
+
   return (
     <div className="space-y-4">
       {/* Prompt input */}
       <div className="space-y-2">
-        <label className="text-sm font-medium">描述你想创作的视频</label>
+        <label className="text-sm font-medium">{t("director.screenplay.labelDescribe")}</label>
         <Textarea
-          placeholder="例如：一只可爱的小猫在草地上玩耍..."
+          placeholder={t("director.screenplay.placeholderPrompt")}
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           className="min-h-[100px] resize-none"
@@ -523,9 +543,9 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
 
       {/* Example prompts */}
       <div className="space-y-2">
-        <label className="text-xs text-muted-foreground">示例提示</label>
+        <label className="text-xs text-muted-foreground">{t("director.screenplay.examplesTitle")}</label>
         <div className="flex flex-wrap gap-1">
-          {EXAMPLE_PROMPTS.map((example, i) => (
+          {examplePrompts.map((example, i) => (
             <button
               key={i}
               onClick={() => handleExampleClick(example)}
@@ -542,26 +562,26 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
       <div className="grid grid-cols-2 gap-3">
         {/* Aspect ratio */}
         <div className="space-y-1.5">
-          <Label className="text-sm font-medium">画面比例</Label>
+          <Label className="text-sm font-medium">{t("director.screenplay.aspectRatio")}</Label>
           <Select
             value={aspectRatio}
             onValueChange={(v) => setAspectRatio(v as AspectRatio)}
             disabled={isSubmitting}
           >
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="选择比例" />
+              <SelectValue placeholder={t("director.screenplay.selectRatio")} />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="16:9">
                 <span className="flex items-center gap-2">
                   <Monitor className="h-3 w-3" />
-                  16:9 横屏
+                  {t("director.screenplay.aspect169")}
                 </span>
               </SelectItem>
               <SelectItem value="9:16">
                 <span className="flex items-center gap-2">
                   <Smartphone className="h-3 w-3" />
-                  9:16 竖屏
+                  {t("director.screenplay.aspect916")}
                 </span>
               </SelectItem>
             </SelectContent>
@@ -570,7 +590,7 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
 
         {/* Resolution */}
         <div className="space-y-1.5">
-          <Label className="text-sm font-medium">分辨率</Label>
+          <Label className="text-sm font-medium">{t("director.screenplay.resolution")}</Label>
           <Select
             value={resolution}
             onValueChange={(v) => {
@@ -585,14 +605,14 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
             disabled={isSubmitting}
           >
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="选择分辨率" />
+              <SelectValue placeholder={t("director.screenplay.selectResolution")} />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="2K">
-                2K (最多 {SCENE_LIMITS['2K']} 场景)
+                {t("director.screenplay.sceneCount2k", { max: SCENE_LIMITS["2K"] })}
               </SelectItem>
               <SelectItem value="4K">
-                4K (最多 {SCENE_LIMITS['4K']} 场景)
+                {t("director.screenplay.sceneCount4k", { max: SCENE_LIMITS["4K"] })}
               </SelectItem>
             </SelectContent>
           </Select>
@@ -604,10 +624,10 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
         {/* Scene count */}
         <div className="space-y-1.5">
           <Label className="text-sm font-medium flex items-center gap-2">
-            场景数量
+            {t("director.screenplay.sceneCountLabel")}
             {!isSceneCountValid && (
               <span className="text-xs text-destructive font-normal">
-                超出上限
+                {t("director.screenplay.sceneCountExceeded")}
               </span>
             )}
           </Label>
@@ -617,12 +637,12 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
             disabled={isSubmitting}
           >
             <SelectTrigger className={`w-full ${!isSceneCountValid ? 'border-destructive' : ''}`}>
-              <SelectValue placeholder="选择场景数量" />
+              <SelectValue placeholder={t("director.screenplay.selectSceneCount")} />
             </SelectTrigger>
             <SelectContent>
               {getMaxSceneOptions().map((n) => (
                 <SelectItem key={n} value={String(n)}>
-                  {n} 个场景
+                  {t("director.screenplay.sceneCountOption", { n })}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -631,12 +651,12 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
 
         {/* Style selection */}
         <div className="space-y-1.5">
-          <Label className="text-sm font-medium">视觉风格</Label>
+          <Label className="text-sm font-medium">{t("director.screenplay.visualStyle")}</Label>
           <StylePicker
             value={styleId === "random" ? "" : styleId}
             onChange={(id) => setStyleId(id as StyleId)}
             disabled={isSubmitting}
-            placeholder="选择风格（留空为随机）"
+            placeholder={t("director.screenplay.stylePlaceholder")}
           />
         </div>
       </div>
@@ -646,7 +666,7 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
         <div className="flex items-start gap-2 p-2 rounded-md bg-destructive/10 border border-destructive/20">
           <AlertCircle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
           <div className="text-xs text-destructive">
-            <p>{sceneValidation.message}</p>
+            <p>{sceneCountWarning}</p>
           </div>
         </div>
       )}
@@ -656,11 +676,11 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
         <div className="flex items-center justify-between">
           <Label className="text-sm font-medium flex items-center gap-1">
             <Users className="h-4 w-4" />
-            角色库选择
+            {t("director.screenplay.characterPickerTitle")}
           </Label>
           {selectedCharacters.length > 0 && (
             <span className="text-xs text-muted-foreground">
-              {selectedCharacters.length} 个
+              {t("director.screenplay.nChars", { n: selectedCharacters.length })}
             </span>
           )}
         </div>
@@ -685,18 +705,18 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
               </PopoverTrigger>
               <PopoverContent className="w-64 p-0" align="start">
                 <div className="p-2 border-b">
-                  <p className="text-sm font-medium">选择角色</p>
+                  <p className="text-sm font-medium">{t("director.screenplay.pickCharacters")}</p>
                 </div>
                 {visibleCharacters.length === 0 ? (
                   <div className="p-4 text-center">
                     <User className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground mb-2">角色库为空</p>
+                    <p className="text-sm text-muted-foreground mb-2">{t("director.screenplay.libraryEmpty")}</p>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={goToCharacterLibrary}
                     >
-                      去创建角色
+                      {t("director.screenplay.goCreateCharacters")}
                     </Button>
                   </div>
                 ) : (
@@ -769,18 +789,18 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
                 </PopoverTrigger>
                 <PopoverContent className="w-64 p-0" align="start">
                   <div className="p-2 border-b">
-                    <p className="text-sm font-medium">选择角色</p>
+                    <p className="text-sm font-medium">{t("director.screenplay.pickCharacters")}</p>
                   </div>
                   {visibleCharacters.length === 0 ? (
                     <div className="p-4 text-center">
                       <User className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                      <p className="text-sm text-muted-foreground mb-2">角色库为空</p>
+                      <p className="text-sm text-muted-foreground mb-2">{t("director.screenplay.libraryEmpty")}</p>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={goToCharacterLibrary}
                       >
-                        去创建角色
+                        {t("director.screenplay.goCreateCharacters")}
                       </Button>
                     </div>
                   ) : (
@@ -825,7 +845,7 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
       {/* Reference images */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <label className="text-sm font-medium">参考图片（可选）</label>
+          <label className="text-sm font-medium">{t("director.screenplay.refImages")}</label>
           <span className="text-xs text-muted-foreground">{images.length}/3</span>
         </div>
 
@@ -870,9 +890,9 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
         <div className="flex items-start gap-2 p-2 rounded-md bg-yellow-500/10 border border-yellow-500/20">
           <AlertCircle className="h-4 w-4 text-yellow-500 mt-0.5 shrink-0" />
           <div className="text-xs text-yellow-600 dark:text-yellow-400">
-            <p className="font-medium">API 未配置</p>
+            <p className="font-medium">{t("director.screenplay.apiWarnTitle")}</p>
             <p className="text-yellow-600/80 dark:text-yellow-400/80">
-              请在设置中为「剧本分析/对话」配置服务映射
+              {t("director.screenplay.apiWarnBody")}
             </p>
           </div>
         </div>
@@ -889,12 +909,14 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
           {isSubmitting ? (
             <>
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2" />
-              生成中...
+              {t("director.screenplay.generatingShort")}
             </>
           ) : (
             <>
               <Wand2 className="h-4 w-4 mr-2" />
-              {onGenerateStoryboard ? "生成故事板" : "生成剧本"}
+              {onGenerateStoryboard
+                ? t("director.screenplay.generateStoryboard")
+                : t("director.screenplay.generateScreenplay")}
             </>
           )}
         </Button>
@@ -907,7 +929,7 @@ export function ScreenplayInput({ onGenerateStoryboard }: ScreenplayInputProps) 
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>AI 设置（即将推出）</p>
+              <p>{t("director.screenplay.aiSettingsSoon")}</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>

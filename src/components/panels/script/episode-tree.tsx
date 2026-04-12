@@ -9,6 +9,7 @@
  */
 
 import { useState, useMemo, useCallback, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import type { ScriptData, ScriptCharacter, ScriptScene, Episode, Shot, CompletionStatus, ProjectBackground, EpisodeRawScript, CalibrationStrictness, FilteredCharacterRecord } from "@/types/script";
 import { getShotCompletionStatus, calculateProgress } from "@/lib/script/shot-utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -214,6 +215,7 @@ export function EpisodeTree({
   onConfirmCalibration,
   onCancelCalibration,
 }: EpisodeTreeProps) {
+  const { t } = useTranslation();
   const [expandedEpisodes, setExpandedEpisodes] = useState<Set<string>>(new Set(["default"]));
   const [expandedScenes, setExpandedScenes] = useState<Set<string>>(new Set());
   const [filter, setFilter] = useState<FilterType>("all");
@@ -632,7 +634,7 @@ export function EpisodeTree({
   if (!scriptData) {
     return (
       <div className="h-full flex items-center justify-center text-muted-foreground text-sm">
-        解析剧本后显示结构
+        {t("scriptPanel.tree.emptyStructure")}
       </div>
     );
   }
@@ -648,14 +650,14 @@ export function EpisodeTree({
               className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent h-9 px-4"
             >
               <Film className="h-3 w-3 mr-1" />
-              剧集结构
+              {t("scriptPanel.tree.tabStructure")}
             </TabsTrigger>
             <TabsTrigger 
               value="trailer" 
               className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent h-9 px-4"
             >
               <Clapperboard className="h-3 w-3 mr-1" />
-              预告片
+              {t("scriptPanel.tree.tabTrailer")}
             </TabsTrigger>
           </TabsList>
         </Tabs>
@@ -672,7 +674,7 @@ export function EpisodeTree({
               )}
             </div>
             <span className="text-xs text-muted-foreground">
-              进度: {overallProgress}
+              {t("scriptPanel.tree.progress", { value: overallProgress })}
             </span>
           </div>
         </div>
@@ -692,7 +694,11 @@ export function EpisodeTree({
                   className="h-6 text-xs px-2"
                   onClick={() => setFilter(f)}
                 >
-                  {f === "all" ? "全部" : f === "pending" ? "未完成" : "已完成"}
+                  {f === "all"
+                    ? t("scriptPanel.tree.filterAll")
+                    : f === "pending"
+                      ? t("scriptPanel.tree.filterPending")
+                      : t("scriptPanel.tree.filterCompleted")}
                 </Button>
               ))}
             </div>
@@ -707,9 +713,9 @@ export function EpisodeTree({
                 disabled={sceneCalibrationStatus === 'calibrating'}
               >
                 {sceneCalibrationStatus === 'calibrating' ? (
-                  <><Loader2 className="h-3 w-3 mr-1 animate-spin" />校准中...</>
+                  <><Loader2 className="h-3 w-3 mr-1 animate-spin" />{t("scriptPanel.tree.calibrating")}</>
                 ) : (
-                  <><Wand2 className="h-3 w-3 mr-1" />AI场景校准</>
+                  <><Wand2 className="h-3 w-3 mr-1" />{t("scriptPanel.tree.aiSceneCalib")}</>
                 )}
               </Button>
             )}
@@ -720,11 +726,11 @@ export function EpisodeTree({
                 className="h-6 text-xs px-2"
                 onClick={onRegenerateAllShots}
               >
-                <RefreshCw className="h-3 w-3 mr-1" />更新全部
+                <RefreshCw className="h-3 w-3 mr-1" />{t("scriptPanel.tree.refreshAll")}
               </Button>
             )}
             <Button size="sm" variant="outline" className="h-6 text-xs px-2" onClick={handleAddEpisode}>
-              <Plus className="h-3 w-3 mr-1" />新建集
+              <Plus className="h-3 w-3 mr-1" />{t("scriptPanel.tree.newEpisode")}
             </Button>
           </div>
         </div>
@@ -736,7 +742,7 @@ export function EpisodeTree({
           {/* 预告片设置区 */}
           <div className="p-3 border-b space-y-3">
             <div className="flex items-center justify-between">
-              <Label className="text-sm font-medium">预告片时长</Label>
+              <Label className="text-sm font-medium">{t("scriptPanel.tree.trailerDuration")}</Label>
               <div className="flex gap-1">
                 {([10, 30, 60] as TrailerDuration[]).map((d) => (
                   <Button
@@ -747,7 +753,7 @@ export function EpisodeTree({
                     onClick={() => setSelectedTrailerDuration(d)}
                   >
                     <Timer className="h-3 w-3 mr-1" />
-                    {d === 60 ? "1分钟" : `${d}秒`}
+                    {d === 60 ? t("scriptPanel.tree.trailer1min") : t("scriptPanel.tree.trailerSeconds", { n: d })}
                   </Button>
                 ))}
               </div>
@@ -760,9 +766,9 @@ export function EpisodeTree({
                 disabled={!trailerApiOptions || trailerGenerating || shots.length === 0 || trailerConfig?.status === 'generating'}
               >
                 {trailerGenerating || trailerConfig?.status === 'generating' ? (
-                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" />AI 分析中...</>
+                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t("scriptPanel.tree.aiAnalyzing")}</>
                 ) : (
-                  <><Sparkles className="h-4 w-4 mr-2" />AI 智能挑选分镜</>
+                  <><Sparkles className="h-4 w-4 mr-2" />{t("scriptPanel.tree.aiPickShots")}</>
                 )}
               </Button>
               {trailerConfig?.shotIds && trailerConfig.shotIds.length > 0 && (
@@ -777,10 +783,10 @@ export function EpisodeTree({
               )}
             </div>
             {!trailerApiOptions && (
-              <p className="text-xs text-amber-500">请先在设置中配置 AI API 密钥</p>
+              <p className="text-xs text-amber-500">{t("scriptPanel.tree.configureApiFirst")}</p>
             )}
             {shots.length === 0 && (
-              <p className="text-xs text-amber-500">请先生成分镜</p>
+              <p className="text-xs text-amber-500">{t("scriptPanel.tree.generateShotsFirst")}</p>
             )}
           </div>
 
@@ -795,7 +801,10 @@ export function EpisodeTree({
               {trailerShots.length > 0 ? (
                 <>
                   <div className="text-xs text-muted-foreground mb-2">
-                    已选择 {trailerShots.length} 个分镜，预计时长 {trailerShots.reduce((sum, s) => sum + (s.duration || 5), 0)} 秒
+                    {t("scriptPanel.tree.selectedShotsSummary", {
+                      count: trailerShots.length,
+                      seconds: trailerShots.reduce((sum, s) => sum + (s.duration || 5), 0),
+                    })}
                   </div>
                   {trailerShots.map((shot, index) => {
                     const calibrationStatus = singleShotCalibrationStatus?.[shot.id] || 'idle';
@@ -814,7 +823,7 @@ export function EpisodeTree({
                           </span>
                           <Play className="h-3 w-3 text-muted-foreground" />
                           <span className="text-xs flex-1 truncate">
-                            {shot.shotSize || "镜头"} - {shot.actionSummary?.slice(0, 30)}...
+                            {shot.shotSize || t("scriptPanel.tree.shotLabel")} - {shot.actionSummary?.slice(0, 30)}...
                           </span>
                           <span className="text-xs text-muted-foreground">
                             {shot.duration || 5}s
@@ -830,7 +839,7 @@ export function EpisodeTree({
                                 onCalibrateSingleShot(shot.id);
                               }}
                               disabled={calibrationStatus === 'calibrating'}
-                              title="AI 校准分镜"
+                              title={t("scriptPanel.tree.calibrateShotTitle")}
                             >
                               {calibrationStatus === 'calibrating' ? (
                                 <Loader2 className="h-3 w-3 animate-spin" />
@@ -855,13 +864,13 @@ export function EpisodeTree({
                 </>
               ) : trailerConfig?.status === 'completed' ? (
                 <div className="text-center text-muted-foreground text-sm py-8">
-                  暂无挑选的分镜
+                  {t("scriptPanel.tree.noTrailerShots")}
                 </div>
               ) : (
                 <div className="text-center text-muted-foreground text-sm py-8">
                   <Clapperboard className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p>选择时长后点击「AI 智能挑选分镜」</p>
-                  <p className="text-xs mt-1">AI 将根据叙事功能和情感张力自动挑选</p>
+                  <p>{t("scriptPanel.tree.trailerHint")}</p>
+                  <p className="text-xs mt-1">{t("scriptPanel.tree.trailerHintSub")}</p>
                 </div>
               )}
             </div>

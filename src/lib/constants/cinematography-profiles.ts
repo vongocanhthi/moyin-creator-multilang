@@ -39,6 +39,8 @@ export interface CinematographyProfile {
   nameEn: string;        // 英文名
   category: CinematographyCategory;
   description: string;   // 中文描述（1-2句）
+  /** English UI description (picker when locale is not Chinese) */
+  descriptionEn: string;
   emoji: string;         // 标识 emoji
 
   // ---- 灯光默认 (Gaffer) ----
@@ -81,6 +83,8 @@ export interface CinematographyProfile {
   promptGuidance: string;
   /** 参考影片列表（帮助 AI 理解目标风格） */
   referenceFilms: string[];
+  /** English film titles for non-Chinese UI */
+  referenceFilmsEn: string[];
 }
 
 // ==================== 分类信息 ====================
@@ -104,6 +108,8 @@ const CINEMATIC_PROFILES: CinematographyProfile[] = [
     nameEn: 'Classic Cinematic',
     category: 'cinematic',
     description: '标准院线电影质感，三点布光，自然色温，匀速轨道运镜，画面端正大气',
+    descriptionEn:
+      'Theatrical look: three-point lighting, natural color temperature, steady dolly work, composed framing.',
     emoji: '🎞️',
     defaultLighting: { style: 'natural', direction: 'three-point', colorTemperature: 'warm' },
     defaultFocus: { depthOfField: 'medium', focusTransition: 'rack-between' },
@@ -114,6 +120,7 @@ const CINEMATIC_PROFILES: CinematographyProfile[] = [
     defaultFocalLength: '50mm',
     promptGuidance: '遵循经典电影语法，三点布光为基础，暖色调营造温暖质感。轨道推拉保持画面稳定流畅，景深随叙事功能调整——对话用浅景深聚焦情绪，全景用深景深交代环境。',
     referenceFilms: ['肖申克的救赎', '阿甘正传', '教父'],
+    referenceFilmsEn: ['The Shawshank Redemption', 'Forrest Gump', 'The Godfather'],
   },
   {
     id: 'film-noir',
@@ -121,6 +128,8 @@ const CINEMATIC_PROFILES: CinematographyProfile[] = [
     nameEn: 'Film Noir',
     category: 'cinematic',
     description: '低调布光、强烈明暗对比、侧光为主、冷色调、雾气弥漫、手持呼吸感',
+    descriptionEn:
+      'Low-key lighting, high contrast, side light, cool tones, fog, subtle handheld movement.',
     emoji: '🖤',
     defaultLighting: { style: 'low-key', direction: 'side', colorTemperature: 'cool' },
     defaultFocus: { depthOfField: 'shallow', focusTransition: 'rack-to-fg' },
@@ -131,6 +140,7 @@ const CINEMATIC_PROFILES: CinematographyProfile[] = [
     defaultFocalLength: '35mm',
     promptGuidance: '黑色电影的灵魂是光影——大面积阴影中只留一束侧光照亮人物。冷色调配合雾气营造不安感，手持微晃增加真实的紧张感。尽量让人物半脸在黑暗中，暗示角色的双面性。',
     referenceFilms: ['银翼杀手', '唐人街', '第三人', '罪恶之城'],
+    referenceFilmsEn: ['Blade Runner', 'Chinatown', 'The Third Man', 'Sin City'],
   },
   {
     id: 'epic-blockbuster',
@@ -138,6 +148,8 @@ const CINEMATIC_PROFILES: CinematographyProfile[] = [
     nameEn: 'Epic Blockbuster',
     category: 'cinematic',
     description: '高调明亮、正面光、深景深、摇臂大幅运动、镜头光晕、宏大感',
+    descriptionEn:
+      'High-key, front light, deep focus, crane moves, lens flares, epic scale.',
     emoji: '⚔️',
     defaultLighting: { style: 'high-key', direction: 'front', colorTemperature: 'neutral' },
     defaultFocus: { depthOfField: 'deep', focusTransition: 'none' },
@@ -148,6 +160,7 @@ const CINEMATIC_PROFILES: CinematographyProfile[] = [
     defaultFocalLength: '24mm',
     promptGuidance: '史诗感来自空间纵深——用深景深和摇臂大幅升降展示宏大场面。正面高调光让画面明亮壮观，适当加入镜头光晕和尘埃粒子增加电影感。战斗场面可切换肩扛手持增加冲击力。',
     referenceFilms: ['指环王', '角斗士', '勇敢的心', '天国王朝'],
+    referenceFilmsEn: ['The Lord of the Rings', 'Gladiator', 'Braveheart', 'Kingdom of Heaven'],
   },
   {
     id: 'intimate-drama',
@@ -155,6 +168,8 @@ const CINEMATIC_PROFILES: CinematographyProfile[] = [
     nameEn: 'Intimate Drama',
     category: 'cinematic',
     description: '自然侧光、暖色温、浅景深、三脚架静态、安静内敛、聚焦人物情绪',
+    descriptionEn:
+      'Natural side light, warm tones, shallow focus, locked-off tripod, quiet, emotion-led.',
     emoji: '🫂',
     defaultLighting: { style: 'natural', direction: 'side', colorTemperature: 'warm' },
     defaultFocus: { depthOfField: 'shallow', focusTransition: 'rack-between' },
@@ -165,6 +180,7 @@ const CINEMATIC_PROFILES: CinematographyProfile[] = [
     defaultFocalLength: '85mm',
     promptGuidance: '亲密剧情用静态镜头和浅景深把观众拉入角色的内心世界。自然侧光创造面部的明暗层次，暖色温传递情感温度。摄影机几乎不动，让演员的微表情成为画面的全部焦点。',
     referenceFilms: ['海边的曼彻斯特', '婚姻故事', '花样年华'],
+    referenceFilmsEn: ['Manchester by the Sea', 'Marriage Story', 'In the Mood for Love'],
   },
   {
     id: 'romantic-film',
@@ -172,6 +188,8 @@ const CINEMATIC_PROFILES: CinematographyProfile[] = [
     nameEn: 'Romantic Film',
     category: 'cinematic',
     description: '逆光黄金时段、极浅景深、斯坦尼康丝滑跟随、丁达尔光效、梦幻柔和',
+    descriptionEn:
+      'Backlit golden hour, ultra-shallow DOF, silky Steadicam, god rays, soft and dreamy.',
     emoji: '💕',
     defaultLighting: { style: 'natural', direction: 'back', colorTemperature: 'golden-hour' },
     defaultFocus: { depthOfField: 'ultra-shallow', focusTransition: 'pull-focus' },
@@ -183,6 +201,7 @@ const CINEMATIC_PROFILES: CinematographyProfile[] = [
     defaultTechnique: 'bokeh',
     promptGuidance: '浪漫感的核心是逆光——黄金时段的暖色逆光让人物轮廓发光。极浅景深把世界虚化成光斑，斯坦尼康轻柔跟随人物，仿佛在梦中行走。偶尔飘落的花瓣或光束为画面增添诗意。',
     referenceFilms: ['恋恋笔记本', '爱乐之城', '傲慢与偏见', '情书'],
+    referenceFilmsEn: ['The Notebook', 'La La Land', 'Pride & Prejudice', 'Love Letter'],
   },
 ];
 
@@ -195,6 +214,7 @@ const DOCUMENTARY_PROFILES: CinematographyProfile[] = [
     nameEn: 'Raw Documentary',
     category: 'documentary',
     description: '手持呼吸感、自然光、中等景深、正面光、无修饰、真实粗粝',
+    descriptionEn: 'Handheld presence, natural light, medium DOF, front light, unpolished and raw.',
     emoji: '📹',
     defaultLighting: { style: 'natural', direction: 'front', colorTemperature: 'neutral' },
     defaultFocus: { depthOfField: 'medium', focusTransition: 'pull-focus' },
@@ -205,6 +225,7 @@ const DOCUMENTARY_PROFILES: CinematographyProfile[] = [
     defaultFocalLength: '35mm',
     promptGuidance: '纪实风格追求「在场感」——手持摄影的轻微晃动让观众感觉身临其境。完全使用自然光，不做任何人工修饰。跟焦跟随人物运动，允许偶尔的焦点偏移，这种不完美反而增加真实感。',
     referenceFilms: ['人生果实', '海豚湾', '徒手攀岩'],
+    referenceFilmsEn: ['Life is Fruity', 'The Cove', 'Free Solo'],
   },
   {
     id: 'news-report',
@@ -212,6 +233,7 @@ const DOCUMENTARY_PROFILES: CinematographyProfile[] = [
     nameEn: 'News Report',
     category: 'documentary',
     description: '肩扛、高调光、深景深、中性色温、信息优先、画面清晰锐利',
+    descriptionEn: 'Shoulder rig, high-key, deep focus, neutral WB, clarity and information first.',
     emoji: '📡',
     defaultLighting: { style: 'high-key', direction: 'front', colorTemperature: 'neutral' },
     defaultFocus: { depthOfField: 'deep', focusTransition: 'none' },
@@ -222,6 +244,7 @@ const DOCUMENTARY_PROFILES: CinematographyProfile[] = [
     defaultFocalLength: '24mm',
     promptGuidance: '新闻纪实以信息传达为第一优先——深景深确保画面所有元素清晰可辨，高调光消除阴影让细节完整呈现。肩扛摄影保持灵活跟踪，但比手持更稳定。画面构图讲究信息层次，重要人物或事件始终在视觉焦点。',
     referenceFilms: ['聚焦', '总统班底', '华盛顿邮报'],
+    referenceFilmsEn: ['Spotlight', 'All the President\'s Men', 'The Post'],
   },
 ];
 
@@ -234,6 +257,7 @@ const STYLIZED_PROFILES: CinematographyProfile[] = [
     nameEn: 'Cyberpunk Neon',
     category: 'stylized',
     description: '霓虹灯光、轮廓光、混合色温、浅景深、稳定器滑动、薄霾弥漫',
+    descriptionEn: 'Neon, rim light, mixed WB, shallow DOF, stabilized glide, light haze.',
     emoji: '🌃',
     defaultLighting: { style: 'neon', direction: 'rim', colorTemperature: 'mixed' },
     defaultFocus: { depthOfField: 'shallow', focusTransition: 'rack-to-bg' },
@@ -245,6 +269,7 @@ const STYLIZED_PROFILES: CinematographyProfile[] = [
     defaultTechnique: 'reflection',
     promptGuidance: '赛博朋克的视觉语言是「冷暖冲突」——霓虹紫红与冰蓝同框，轮廓光把人物从暗色背景中剥离。浅景深让霓虹灯化为迷幻光斑，薄霾为光线增加体积感。镜头慢速滑动穿过雨夜街道，营造未来都市的疏离感。',
     referenceFilms: ['银翼杀手2049', '攻壳机动队', '黑客帝国', '创战纪'],
+    referenceFilmsEn: ['Blade Runner 2049', 'Ghost in the Shell', 'The Matrix', 'Tron: Legacy'],
   },
   {
     id: 'wuxia-classic',
@@ -252,6 +277,7 @@ const STYLIZED_PROFILES: CinematographyProfile[] = [
     nameEn: 'Classic Wuxia',
     category: 'stylized',
     description: '自然侧光、暖色温、中景深、摇臂升降、薄雾飘渺、古韵悠然',
+    descriptionEn: 'Natural side light, warm tones, medium DOF, crane moves, mist, classical mood.',
     emoji: '🗡️',
     defaultLighting: { style: 'natural', direction: 'side', colorTemperature: 'warm' },
     defaultFocus: { depthOfField: 'medium', focusTransition: 'rack-between' },
@@ -262,6 +288,7 @@ const STYLIZED_PROFILES: CinematographyProfile[] = [
     defaultFocalLength: '50mm',
     promptGuidance: '古典武侠追求「意境」——山间薄雾与落叶营造江湖的苍茫感。摇臂从高处缓缓降至人物，如俯瞰天下的视角。自然侧光模拟透过竹林的斑驳光影，暖色温呼应水墨丹青。打斗场面可加入慢动作，展现武术之美。',
     referenceFilms: ['卧虎藏龙', '英雄', '刺客聂隐娘', '一代宗师'],
+    referenceFilmsEn: ['Crouching Tiger, Hidden Dragon', 'Hero', 'The Assassin', 'The Grandmaster'],
   },
   {
     id: 'horror-thriller',
@@ -269,6 +296,7 @@ const STYLIZED_PROFILES: CinematographyProfile[] = [
     nameEn: 'Horror Thriller',
     category: 'stylized',
     description: '低调布光、底光不安感、冷色调、浅景深、手持颤抖、浓雾遮蔽',
+    descriptionEn: 'Low-key, uplight unease, cool tones, shallow DOF, trembling handheld, heavy fog.',
     emoji: '👻',
     defaultLighting: { style: 'low-key', direction: 'bottom', colorTemperature: 'cool' },
     defaultFocus: { depthOfField: 'shallow', focusTransition: 'rack-to-bg' },
@@ -279,6 +307,7 @@ const STYLIZED_PROFILES: CinematographyProfile[] = [
     defaultFocalLength: '24mm',
     promptGuidance: '恐怖片的摄影原则是「隐藏比展示更可怕」——浅景深让背景模糊成未知的威胁，浓雾遮蔽视野制造不安。底光让面部出现不自然的阴影，手持极慢移动制造潜行感。关键时刻突然快速甩镜，打破之前的缓慢节奏。',
     referenceFilms: ['闪灵', '遗传厄运', '招魂', '午夜凶铃'],
+    referenceFilmsEn: ['The Shining', 'Hereditary', 'The Conjuring', 'Ringu'],
   },
   {
     id: 'music-video',
@@ -286,6 +315,8 @@ const STYLIZED_PROFILES: CinematographyProfile[] = [
     nameEn: 'Music Video',
     category: 'stylized',
     description: '霓虹逆光、混合色温、极浅景深、斯坦尼康环绕、光粒子飞舞、视觉冲击力强',
+    descriptionEn:
+      'Neon backlight, mixed WB, ultra-shallow DOF, Steadicam orbit, particles, high visual impact.',
     emoji: '🎵',
     defaultLighting: { style: 'neon', direction: 'back', colorTemperature: 'mixed' },
     defaultFocus: { depthOfField: 'ultra-shallow', focusTransition: 'pull-focus' },
@@ -297,6 +328,7 @@ const STYLIZED_PROFILES: CinematographyProfile[] = [
     defaultTechnique: 'bokeh',
     promptGuidance: 'MV追求极致视觉冲击——每一帧都要像海报。极浅景深把一切虚化成五彩光斑，霓虹逆光勾勒人物轮廓。快速斯坦尼康环绕拍摄，配合频繁的速度变化（慢放与快进交替）。大量使用光粒子和镜头光晕增加梦幻感。',
     referenceFilms: ['爱乐之城MV段落', 'Beyoncé - Lemonade', 'The Weeknd - Blinding Lights'],
+    referenceFilmsEn: ['La La Land (sequence)', 'Beyoncé — Lemonade', 'The Weeknd — Blinding Lights'],
   },
 ];
 
@@ -309,6 +341,8 @@ const GENRE_PROFILES: CinematographyProfile[] = [
     nameEn: 'Family Warmth',
     category: 'genre',
     description: '自然正面光、暖色温3200K、中等景深、三脚架稳定、温暖如阳光洒入客厅',
+    descriptionEn:
+      'Natural front light, warm ~3200K, medium DOF, tripod-locked, warm like sun through a window.',
     emoji: '🏠',
     defaultLighting: { style: 'natural', direction: 'front', colorTemperature: 'warm' },
     defaultFocus: { depthOfField: 'medium', focusTransition: 'rack-between' },
@@ -319,6 +353,7 @@ const GENRE_PROFILES: CinematographyProfile[] = [
     defaultFocalLength: '50mm',
     promptGuidance: '家庭剧的摄影要像一个安静的观察者——三脚架稳定不干扰，暖色光如午后阳光洒入窗户。中等景深让家庭成员都在画面中清晰可见，传递「团聚」感。偶尔的丁达尔光线从窗户射入，为平凡的家庭场景增添一丝诗意。',
     referenceFilms: ['小偷家族', '步履不停', '请回答1988', '都挺好'],
+    referenceFilmsEn: ['Shoplifters', 'Still Walking', 'Reply 1988', 'All is Well'],
   },
   {
     id: 'action-intense',
@@ -326,6 +361,7 @@ const GENRE_PROFILES: CinematographyProfile[] = [
     nameEn: 'Intense Action',
     category: 'genre',
     description: '高调侧光、中性色温、中景深、肩扛快速跟拍、尘土飞扬',
+    descriptionEn: 'High-key side light, neutral WB, medium DOF, fast shoulder follow, dust in the air.',
     emoji: '💥',
     defaultLighting: { style: 'high-key', direction: 'side', colorTemperature: 'neutral' },
     defaultFocus: { depthOfField: 'medium', focusTransition: 'pull-focus' },
@@ -337,6 +373,7 @@ const GENRE_PROFILES: CinematographyProfile[] = [
     defaultTechnique: 'high-speed',
     promptGuidance: '动作戏的摄影追求「动能传递」——肩扛快速跟拍让观众感受冲击力，侧光强化肌肉轮廓和动作线条。中景深保证主体清晰但背景有适度虚化。关键动作瞬间（出拳、爆炸）可使用慢放0.5x突出力量感，随后立刻恢复正常速度。尘土和火花增加物理碰撞的真实感。',
     referenceFilms: ['疯狂的麦克斯', '谍影重重', '突袭', '碟中谍'],
+    referenceFilmsEn: ['Mad Max: Fury Road', 'The Bourne Identity', 'The Raid', 'Mission: Impossible'],
   },
   {
     id: 'suspense-mystery',
@@ -344,6 +381,7 @@ const GENRE_PROFILES: CinematographyProfile[] = [
     nameEn: 'Suspense Mystery',
     category: 'genre',
     description: '低调侧光、冷色调、浅景深、轨道缓推、薄雾笼罩、隐藏与揭示',
+    descriptionEn: 'Low-key side light, cool tones, shallow DOF, slow dolly-in, mist, hide and reveal.',
     emoji: '🔍',
     defaultLighting: { style: 'low-key', direction: 'side', colorTemperature: 'cool' },
     defaultFocus: { depthOfField: 'shallow', focusTransition: 'rack-to-fg' },
@@ -354,6 +392,7 @@ const GENRE_PROFILES: CinematographyProfile[] = [
     defaultFocalLength: '50mm',
     promptGuidance: '悬疑片的摄影核心是「控制信息揭示」——浅景深选择性地让观众只看到导演想让他们看到的。轨道极慢推进制造压迫感，低调侧光让画面总有一半隐藏在阴影中。转焦是重要叙事手法，从前景线索转焦到背景嫌疑人，或反向操作。薄雾为画面增加朦胧感，暗示真相的不确定性。',
     referenceFilms: ['消失的爱人', '七宗罪', '杀人回忆', '十二怒汉'],
+    referenceFilmsEn: ['Gone Girl', 'Se7en', 'Memories of Murder', '12 Angry Men'],
   },
 ];
 
@@ -366,6 +405,8 @@ const ERA_PROFILES: CinematographyProfile[] = [
     nameEn: '90s Hong Kong',
     category: 'era',
     description: '霓虹侧光、混合色温、中景深、手持晃动、薄霾弥漫、王家卫式忧郁',
+    descriptionEn:
+      'Neon side light, mixed WB, medium DOF, handheld drift, haze, Wong Kar-wai melancholy.',
     emoji: '🌙',
     defaultLighting: { style: 'neon', direction: 'side', colorTemperature: 'mixed' },
     defaultFocus: { depthOfField: 'medium', focusTransition: 'rack-between' },
@@ -376,6 +417,7 @@ const ERA_PROFILES: CinematographyProfile[] = [
     defaultFocalLength: '35mm',
     promptGuidance: '90年代港片的摄影DNA是「都市霓虹+手持游走」——混合色温的霓虹灯把城市街道染成红蓝交织的梦境。手持摄影在人群中穿梭，偶尔使用抽帧或降格制造王家卫式的虚影效果。薄霾笼罩的街头，每个路人都像有故事。侧光勾勒出人物忧郁的轮廓。',
     referenceFilms: ['重庆森林', '堕落天使', '无间道', '英雄本色'],
+    referenceFilmsEn: ['Chungking Express', 'Fallen Angels', 'Infernal Affairs', 'A Better Tomorrow'],
   },
   {
     id: 'golden-age-hollywood',
@@ -383,6 +425,8 @@ const ERA_PROFILES: CinematographyProfile[] = [
     nameEn: 'Golden Age Hollywood',
     category: 'era',
     description: '高调三点布光、暖色温、深景深、轨道优雅运动、光芒四射、端庄华丽',
+    descriptionEn:
+      'High-key three-point, warm tones, deep focus, graceful dolly moves, glowing, elegant glamour.',
     emoji: '⭐',
     defaultLighting: { style: 'high-key', direction: 'three-point', colorTemperature: 'warm' },
     defaultFocus: { depthOfField: 'deep', focusTransition: 'none' },
@@ -393,6 +437,7 @@ const ERA_PROFILES: CinematographyProfile[] = [
     defaultFocalLength: '50mm',
     promptGuidance: '好莱坞黄金时代的摄影追求「完美」——三点布光消除一切不美的阴影，让明星容光焕发。深景深和精心构图让每一帧都像油画，轨道缓慢优雅移动如华尔兹。暖色温赋予画面怀旧的金色光芒。一切都要端庄、华丽、无可挑剔。',
     referenceFilms: ['卡萨布兰卡', '公民凯恩', '日落大道', '乱世佳人'],
+    referenceFilmsEn: ['Casablanca', 'Citizen Kane', 'Sunset Boulevard', 'Gone with the Wind'],
   },
 ];
 

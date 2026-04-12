@@ -8,6 +8,7 @@
  * 展示用户创建的风格，支持新建/编辑/删除/复制
  */
 
+import { useTranslation } from "react-i18next";
 import { useCustomStyleStore } from "@/stores/custom-style-store";
 import { StyleCard } from "./StyleCard";
 import { StyleEditor } from "./StyleEditor";
@@ -23,6 +24,7 @@ import {
 import { Plus, Pencil, Trash2, Copy } from "lucide-react";
 
 export function CustomStylesGrid() {
+  const { t } = useTranslation();
   const {
     styles,
     selectedStyleId,
@@ -48,12 +50,12 @@ export function CustomStylesGrid() {
       {/* 顶部栏 */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
         <div className="flex items-center gap-2">
-          <h2 className="text-sm font-semibold text-foreground">我的风格</h2>
-          <span className="text-xs text-muted-foreground">{styles.length} 个</span>
+          <h2 className="text-sm font-semibold text-foreground">{t("assets.customGrid.title")}</h2>
+          <span className="text-xs text-muted-foreground">{t("assets.customGrid.count", { count: styles.length })}</span>
         </div>
         <Button size="sm" onClick={() => setEditingStyle("new")}>
           <Plus className="w-3.5 h-3.5 mr-1.5" />
-          新建风格
+          {t("assets.customGrid.newStyle")}
         </Button>
       </div>
 
@@ -62,15 +64,15 @@ export function CustomStylesGrid() {
         <div className="p-4">
           {styles.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-              <div className="text-sm mb-2">还没有自定义风格</div>
-              <div className="text-xs mb-4">点击「新建风格」创建你的第一个风格</div>
+              <div className="text-sm mb-2">{t("assets.customGrid.empty")}</div>
+              <div className="text-xs mb-4">{t("assets.customGrid.emptyHint")}</div>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setEditingStyle("new")}
               >
                 <Plus className="w-3.5 h-3.5 mr-1.5" />
-                新建风格
+                {t("assets.customGrid.newStyle")}
               </Button>
             </div>
           ) : (
@@ -91,11 +93,11 @@ export function CustomStylesGrid() {
                   <ContextMenuContent>
                     <ContextMenuItem onClick={() => setEditingStyle(style.id)}>
                       <Pencil className="w-3.5 h-3.5 mr-2" />
-                      编辑
+                      {t("assets.customGrid.edit")}
                     </ContextMenuItem>
                     <ContextMenuItem onClick={() => duplicateStyle(style.id)}>
                       <Copy className="w-3.5 h-3.5 mr-2" />
-                      复制
+                      {t("assets.customGrid.duplicate")}
                     </ContextMenuItem>
                     <ContextMenuSeparator />
                     <ContextMenuItem
@@ -103,7 +105,7 @@ export function CustomStylesGrid() {
                       onClick={() => deleteStyle(style.id)}
                     >
                       <Trash2 className="w-3.5 h-3.5 mr-2" />
-                      删除
+                      {t("assets.customGrid.delete")}
                     </ContextMenuItem>
                   </ContextMenuContent>
                 </ContextMenu>

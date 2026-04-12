@@ -34,6 +34,20 @@ const DEFAULT_PROJECT: Project = {
   updatedAt: Date.now(),
 };
 
+/** Demo project id (matches demo-data / prepare-demo-data seed) */
+export const DEMO_PROJECT_ID = "a4bbe260-0127-49c7-9230-e766402663c7";
+/** Canonical display name for the seeded demo project (English; not tied to UI locale). */
+export const DEMO_PROJECT_NAME_EN = "Slam Dunk Girl (Demo)";
+
+/** Names that should migrate to {@link DEMO_PROJECT_NAME_EN} on rehydrate (legacy + old i18n renames). */
+const DEMO_PROJECT_LEGACY_NAMES = new Set([
+  "灌篮少女（演示）",
+  "灌篮少女 (演示)",
+  "灌篮少女(演示)",
+  "灌篮少女",
+  "Cô gái Slam Dunk (bản demo)",
+]);
+
 export const useProjectStore = create<ProjectStore>()(
   persist(
     (set, get) => ({
@@ -139,6 +153,14 @@ export const useProjectStore = create<ProjectStore>()(
           null;
         state.activeProjectId = project?.id || null;
         state.activeProject = project;
+
+        queueMicrotask(() => {
+          const { projects, renameProject } = useProjectStore.getState();
+          const demo = projects.find((p) => p.id === DEMO_PROJECT_ID);
+          if (demo && DEMO_PROJECT_LEGACY_NAMES.has(demo.name)) {
+            renameProject(DEMO_PROJECT_ID, DEMO_PROJECT_NAME_EN);
+          }
+        });
 
         // 异步扫描磁盘上 _p/ 目录，将遗漏的项目恢复到列表中
         // 解决路径切换/导入/迁移后项目列表为空的问题

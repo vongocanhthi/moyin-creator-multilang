@@ -3,8 +3,8 @@
 // Commercial licensing available. See COMMERCIAL_LICENSE.md.
 import { useTranslation } from "react-i18next";
 import { mainNavItems, bottomNavItems, type Tab, useMediaPanelStore } from "@/stores/media-panel-store";
-import { useAppSettingsStore } from "@/stores/app-settings-store";
 import { useThemeStore } from "@/stores/theme-store";
+import { useAppSettingsStore } from "@/stores/app-settings-store";
 import { getWorkflowGuideDocUrl } from "@/lib/i18n/workflow-guide-url";
 import { cn } from "@/lib/utils";
 import {
@@ -13,12 +13,58 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { ChevronLeft, LayoutDashboard, Settings, Sun, Moon, HelpCircle } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { APP_LOCALES, type AppLocale } from "@/types/locale";
+import { ChevronLeft, LayoutDashboard, Settings, Sun, Moon, HelpCircle, Globe } from "lucide-react";
+
+function TabBarLanguageMenu() {
+  const { t } = useTranslation();
+  const locale = useAppSettingsStore((s) => s.locale);
+  const setLocale = useAppSettingsStore((s) => s.setLocale);
+
+  return (
+    <TooltipProvider delayDuration={300}>
+      <DropdownMenu>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className="w-full flex flex-col items-center py-2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Globe className="h-4 w-4" />
+                <span className="text-[8px]">{t("tabBar.language")}</span>
+              </button>
+            </DropdownMenuTrigger>
+          </TooltipTrigger>
+          <TooltipContent side="right">{t("tabBar.languageTooltip")}</TooltipContent>
+        </Tooltip>
+        <DropdownMenuContent side="right" align="start" className="min-w-[10rem]">
+          <DropdownMenuRadioGroup
+            value={locale}
+            onValueChange={(v) => setLocale(v as AppLocale)}
+          >
+            {APP_LOCALES.map(({ code, nativeLabel }) => (
+              <DropdownMenuRadioItem key={code} value={code}>
+                {nativeLabel}
+              </DropdownMenuRadioItem>
+            ))}
+          </DropdownMenuRadioGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </TooltipProvider>
+  );
+}
 
 export function TabBar() {
   const { t } = useTranslation();
-  const locale = useAppSettingsStore((s) => s.locale);
-  const workflowGuideHref = getWorkflowGuideDocUrl(locale);
+  const workflowGuideHref = getWorkflowGuideDocUrl();
   const { activeTab, inProject, setActiveTab, setInProject } = useMediaPanelStore();
   const { theme, toggleTheme } = useThemeStore();
 
@@ -55,8 +101,9 @@ export function TabBar() {
             </Tooltip>
           </TooltipProvider>
         </nav>
-        {/* Bottom: Help + Settings + Theme */}
+        {/* Bottom: Language + Help + Settings + Theme */}
         <div className="mt-auto border-t border-border py-1">
+          <TabBarLanguageMenu />
           <TooltipProvider delayDuration={300}>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -172,8 +219,9 @@ export function TabBar() {
         })}
       </nav>
 
-      {/* Bottom: Help + Settings + Theme */}
+      {/* Bottom: Language + Help + Settings + Theme */}
       <div className="mt-auto border-t border-border py-1">
+        <TabBarLanguageMenu />
         <TooltipProvider delayDuration={300}>
           <Tooltip>
             <TooltipTrigger asChild>

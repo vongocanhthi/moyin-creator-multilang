@@ -95,11 +95,11 @@ import {
   localizedAiProviderName,
   localizedImageHostName,
 } from "@/lib/i18n/settings-labels";
-import { UpdateDialog } from "@/components/UpdateDialog";
-import type { AvailableUpdateInfo } from "@/types/update";
 import packageJson from "../../../package.json";
 import { INDEXEDDB_APP_DB_NAME } from "@/constants/storage";
-import { MEMEFAST_PORTAL_URL } from "@/constants/memefast";
+import { APP_GITHUB_RELEASES_URL } from "@/config/github-repo";
+import { openMemefastPortal } from "@/constants/memefast";
+import { openRunninghubPortal } from "@/constants/runninghub";
 
 // Platform icon mapping
 const PLATFORM_ICONS: Record<string, React.ReactNode> = {
@@ -135,11 +135,9 @@ export function SettingsPanel() {
     resourceSharing,
     storagePaths,
     cacheSettings,
-    updateSettings,
     setResourceSharing,
     setStoragePaths,
     setCacheSettings,
-    setUpdateSettings,
   } = useAppSettingsStore();
   const { activeProjectId } = useProjectStore();
   const { assignProjectToUnscoped: assignCharactersToProject } = useCharacterLibraryStore();
@@ -160,9 +158,6 @@ export function SettingsPanel() {
   const [cacheSize, setCacheSize] = useState(0);
   const [isCacheLoading, setIsCacheLoading] = useState(false);
   const [isClearingCache, setIsClearingCache] = useState(false);
-  const [isCheckingForUpdates, setIsCheckingForUpdates] = useState(false);
-  const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
-  const [availableUpdate, setAvailableUpdate] = useState<AvailableUpdateInfo | null>(null);
   const [appVersion, setAppVersion] = useState(packageJson.version);
   const visibleImageHostProviders = useMemo(
     () => imageHostProviders.filter(isVisibleImageHostProvider),
@@ -401,7 +396,6 @@ export function SettingsPanel() {
 
   const [activeTab, setActiveTab] = useState<string>("api");
   const hasStorageManager = typeof window !== "undefined" && !!window.storageManager;
-  const hasAppUpdater = typeof window !== "undefined" && !!window.appUpdater;
 
   const formatBytes = useCallback((bytes: number) => {
     if (!bytes) return "0 B";
@@ -628,39 +622,8 @@ export function SettingsPanel() {
     }
   };
 
-  const handleCheckForUpdates = async () => {
-    if (!window.appUpdater) {
-      toast.error(t("settings.toast.storageDesktopOnly"));
-      return;
-    }
-
-    setIsCheckingForUpdates(true);
-    try {
-      const result = await window.appUpdater.checkForUpdates();
-      if (!result.success) {
-        toast.error(t("settings.toast.updateCheckFailed", { message: result.error || "—" }));
-        return;
-      }
-
-      if (result.hasUpdate && result.update) {
-        setAvailableUpdate(result.update);
-        setUpdateDialogOpen(true);
-        return;
-      }
-
-      setAvailableUpdate(null);
-      toast.success(t("settings.toast.alreadyLatest", { version: result.currentVersion }));
-    } catch (error) {
-      console.error("[SettingsPanel] Failed to check updates:", error);
-      toast.error(t("settings.toast.updateCheckError"));
-    } finally {
-      setIsCheckingForUpdates(false);
-    }
-  };
-
-  const handleClearIgnoredVersion = () => {
-    setUpdateSettings({ ignoredVersion: "" });
-    toast.success(t("settings.toast.ignoreCleared"));
+  const handleCheckForUpdates = () => {
+    window.open(APP_GITHUB_RELEASES_URL, "_blank", "noopener,noreferrer");
   };
 
   return (
@@ -738,12 +701,11 @@ export function SettingsPanel() {
             </div>
           </div>
 
-          {/* MemeFast 购买引导 */}
-          <a
-            href={MEMEFAST_PORTAL_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-3 p-4 bg-gradient-to-r from-orange-500/5 to-primary/5 border border-orange-500/20 rounded-lg hover:border-orange-500/40 transition-colors group"
+          {/* MemeFast 购买引导 — button avoids showing destination URL on hover */}
+          <button
+            type="button"
+            onClick={() => openMemefastPortal()}
+            className="flex items-center gap-3 p-4 w-full text-left bg-gradient-to-r from-orange-500/5 to-primary/5 border border-orange-500/20 rounded-lg hover:border-orange-500/40 transition-colors group cursor-pointer"
           >
             <div className="p-2 rounded-lg bg-orange-500/10 text-orange-500 shrink-0">
               <Zap className="h-5 w-5" />
@@ -763,7 +725,7 @@ export function SettingsPanel() {
               {t("settings.api.getApiKey")}
               <ExternalLink className="h-3.5 w-3.5" />
             </span>
-          </a>
+          </button>
 
           {/* Feature Binding */}
           <FeatureBindingPanel />
@@ -784,15 +746,14 @@ export function SettingsPanel() {
                 <p className="text-sm text-muted-foreground mb-2">
                   {t("settings.api.emptyProvidersHint")}
                 </p>
-                <a
-                  href={MEMEFAST_PORTAL_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline mb-4"
+                <button
+                  type="button"
+                  onClick={() => openMemefastPortal()}
+                  className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline mb-4 cursor-pointer bg-transparent border-0 p-0 font-sans"
                 >
                   <ExternalLink className="h-3.5 w-3.5" />
                   {t("settings.api.getKeyLink")}
-                </a>
+                </button>
                 <Button onClick={() => setAddDialogOpen(true)}>
                   <Plus className="h-4 w-4 mr-1" />
                   {t("settings.addProvider")}
@@ -991,15 +952,27 @@ export function SettingsPanel() {
                         {/* MemeFast 购买引导 */}
                         {provider.platform === 'memefast' && !configured && (
                           <div className="px-4 pb-2">
-                            <a
-                              href={MEMEFAST_PORTAL_URL}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline"
+                            <button
+                              type="button"
+                              onClick={() => openMemefastPortal()}
+                              className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline cursor-pointer bg-transparent border-0 p-0 font-sans"
                             >
                               <ExternalLink className="h-3 w-3" />
                               {t("settings.api.getKeyArrow")}
-                            </a>
+                            </button>
+                          </div>
+                        )}
+
+                        {provider.platform === 'runninghub' && !configured && (
+                          <div className="px-4 pb-2">
+                            <button
+                              type="button"
+                              onClick={() => openRunninghubPortal()}
+                              className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline cursor-pointer bg-transparent border-0 p-0 font-sans"
+                            >
+                              <ExternalLink className="h-3 w-3" />
+                              {t("settings.api.runninghubPortalArrow")}
+                            </button>
                           </div>
                         )}
 
@@ -1602,50 +1575,12 @@ export function SettingsPanel() {
                     variant="outline"
                     size="sm"
                     onClick={handleCheckForUpdates}
-                    disabled={!hasAppUpdater || isCheckingForUpdates}
+                    type="button"
                   >
-                    {isCheckingForUpdates ? (
-                      <Loader2 className="h-4 w-4 animate-spin mr-1" />
-                    ) : (
-                      <RefreshCw className="h-4 w-4 mr-1" />
-                    )}
+                    <RefreshCw className="h-4 w-4 mr-1" />
                     {t("settings.storage.checkUpdates")}
                   </Button>
                 </div>
-
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <p className="text-sm font-medium">{t("settings.storage.autoCheck")}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {t("settings.storage.autoCheckHint")}
-                    </p>
-                  </div>
-                  <Switch
-                    checked={updateSettings.autoCheckEnabled}
-                    onCheckedChange={(checked) => setUpdateSettings({ autoCheckEnabled: checked })}
-                    disabled={!hasAppUpdater}
-                  />
-                </div>
-
-                {updateSettings.ignoredVersion && (
-                  <div className="flex items-center justify-between gap-4 rounded-lg border border-border bg-muted/30 px-3 py-2">
-                    <div>
-                      <p className="text-sm font-medium">{t("settings.storage.ignoredVersion")}</p>
-                      <p className="text-xs text-muted-foreground font-mono mt-1">
-                        v{updateSettings.ignoredVersion}
-                      </p>
-                    </div>
-                    <Button variant="ghost" size="sm" onClick={handleClearIgnoredVersion}>
-                      {t("settings.storage.restoreReminder")}
-                    </Button>
-                  </div>
-                )}
-
-                {!hasAppUpdater && (
-                  <p className="text-xs text-muted-foreground">
-                    {t("settings.storage.updatesDesktopOnly")}
-                  </p>
-                )}
               </div>
 
               {/* About */}
@@ -1796,15 +1731,6 @@ export function SettingsPanel() {
         onOpenChange={setImageHostEditOpen}
         provider={editingImageHost}
         onSave={updateImageHostProvider}
-      />
-      <UpdateDialog
-        open={updateDialogOpen}
-        onOpenChange={setUpdateDialogOpen}
-        updateInfo={availableUpdate}
-        onIgnoreVersion={(version) => {
-          setUpdateSettings({ ignoredVersion: version });
-          setAvailableUpdate(null);
-        }}
       />
     </div>
   );

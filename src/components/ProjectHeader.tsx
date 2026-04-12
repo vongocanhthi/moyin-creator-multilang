@@ -9,6 +9,7 @@
  */
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useProjectStore } from "@/stores/project-store";
 import { useScriptStore } from "@/stores/script-store";
 import { useMediaPanelStore, stages } from "@/stores/media-panel-store";
@@ -18,6 +19,7 @@ import { cn } from "@/lib/utils";
 export type SaveStatus = "saved" | "saving" | "unsaved";
 
 export function ProjectHeader() {
+  const { t } = useTranslation();
   const { activeProject } = useProjectStore();
   const { activeStage, activeEpisodeIndex, backToSeries } = useMediaPanelStore();
   const scriptStore = useScriptStore();
@@ -66,13 +68,16 @@ export function ProjectHeader() {
 
   // Get current stage info
   const currentStageConfig = stages.find(s => s.id === activeStage);
+  const stageLabel = currentStageConfig
+    ? t(`projectHeader.stages.${currentStageConfig.id}`)
+    : null;
 
   return (
     <div className="h-10 bg-[#0f0f0f] border-b border-zinc-800 px-4 flex items-center justify-between shrink-0">
       {/* Left: Project Name + Stage + Episode Breadcrumb */}
       <div className="flex items-center gap-2">
         <span className="text-sm font-medium text-white truncate max-w-[200px]">
-          {activeProject?.name || "未命名项目"}
+          {activeProject?.name || t("projectHeader.unnamedProject")}
         </span>
         {activeEpisodeIndex != null && (
           <>
@@ -80,20 +85,20 @@ export function ProjectHeader() {
             <button
               className="text-xs text-primary hover:text-primary/80 font-medium transition-colors"
               onClick={backToSeries}
-              title="返回全剧视图"
+              title={t("projectHeader.backToSeries")}
             >
-              第{activeEpisodeIndex}集
+              {t("projectHeader.episode", { n: activeEpisodeIndex })}
             </button>
           </>
         )}
-        {currentStageConfig && (
+        {currentStageConfig && stageLabel && (
           <>
             <span className="text-zinc-700">/</span>
             <span className="text-xs text-zinc-500 font-mono">
               {currentStageConfig.phase}
             </span>
             <span className="text-xs text-zinc-400">
-              {currentStageConfig.label}
+              {stageLabel}
             </span>
           </>
         )}

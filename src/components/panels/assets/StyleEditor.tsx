@@ -19,6 +19,7 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { X, ImagePlus, Save, ArrowLeft, Trash2, Sparkles, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 interface StyleEditorProps {
   styleId: string | null; // null = 新建, 'new' = 新建, 其他 = 编辑
@@ -48,6 +49,7 @@ const emptyForm: FormData = {
 };
 
 export function StyleEditor({ styleId, onClose }: StyleEditorProps) {
+  const { t } = useTranslation();
   const { styles, addStyle, updateStyle } = useCustomStyleStore();
   const isNew = !styleId || styleId === "new";
   const existing = isNew ? null : styles.find((s) => s.id === styleId);
@@ -130,7 +132,7 @@ export function StyleEditor({ styleId, onClose }: StyleEditorProps) {
   // AI 提取风格词
   const handleExtractStyle = async () => {
     if (!form.prompt.trim() && form.referenceImages.length === 0) {
-      toast.warning("请先输入风格描述或上传参考图");
+      toast.warning(t("assets.styleEditor.toastNeedInput"));
       return;
     }
     setExtracting(true);
@@ -142,9 +144,9 @@ export function StyleEditor({ styleId, onClose }: StyleEditorProps) {
         sceneTokens: result.sceneTokens,
         description: prev.description || result.summaryZh,
       }));
-      toast.success("风格提取完成");
+      toast.success(t("assets.styleEditor.toastExtractOk"));
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "提取失败";
+      const msg = err instanceof Error ? err.message : t("assets.styleEditor.extractFail");
       toast.error(msg);
     } finally {
       setExtracting(false);
@@ -182,11 +184,11 @@ export function StyleEditor({ styleId, onClose }: StyleEditorProps) {
           <ArrowLeft className="w-4 h-4" />
         </Button>
         <h2 className="text-sm font-semibold flex-1">
-          {isNew ? "新建风格" : "编辑风格"}
+          {isNew ? t("assets.styleEditor.newStyle") : t("assets.styleEditor.editStyle")}
         </h2>
         <Button size="sm" onClick={handleSave} disabled={!form.name.trim()}>
           <Save className="w-3.5 h-3.5 mr-1.5" />
-          保存
+          {t("assets.styleEditor.save")}
         </Button>
       </div>
 
@@ -196,23 +198,23 @@ export function StyleEditor({ styleId, onClose }: StyleEditorProps) {
           {/* 风格名称 */}
           <div className="space-y-1.5">
             <Label className="text-xs">
-              风格名称 <span className="text-destructive">*</span>
+              {t("assets.styleEditor.nameLabel")} <span className="text-destructive">*</span>
             </Label>
             <Input
               value={form.name}
               onChange={(e) => updateField("name", e.target.value)}
-              placeholder="给风格起个名字"
+              placeholder={t("assets.styleEditor.namePlaceholder")}
               className="h-8 text-sm"
             />
           </div>
 
           {/* 风格提示词 */}
           <div className="space-y-1.5">
-            <Label className="text-xs">风格提示词</Label>
+            <Label className="text-xs">{t("assets.styleEditor.promptLabel")}</Label>
             <textarea
               value={form.prompt}
               onChange={(e) => updateField("prompt", e.target.value)}
-              placeholder="输入风格关键词，中英文均可，如：anime style, soft lighting, pastel colors"
+              placeholder={t("assets.styleEditor.promptPlaceholder")}
               className="w-full min-h-[100px] rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-y"
             />
           </div>
@@ -227,20 +229,20 @@ export function StyleEditor({ styleId, onClose }: StyleEditorProps) {
               disabled={extracting || (!form.prompt.trim() && form.referenceImages.length === 0)}
             >
               {extracting ? (
-                <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />提取中…</>
+                <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />{t("assets.styleEditor.extracting")}</>
               ) : (
-                <><Sparkles className="w-3.5 h-3.5 mr-1.5" />AI 提取风格词</>
+                <><Sparkles className="w-3.5 h-3.5 mr-1.5" />{t("assets.styleEditor.extractBtn")}</>
               )}
             </Button>
             <p className="text-[10px] text-muted-foreground mt-1">
-              从上方描述 + 参考图中智能分离"视觉风格"和"场景内容"，使用「图片理解」服务
+              {t("assets.styleEditor.extractHelp")}
             </p>
           </div>
 
           {/* 提取结果：styleTokens */}
           {form.styleTokens && (
             <div className="space-y-1.5">
-              <Label className="text-xs text-primary">✨ 视觉风格词（角色/场景设定图使用）</Label>
+              <Label className="text-xs text-primary">{t("assets.styleEditor.styleTokensLabel")}</Label>
               <textarea
                 value={form.styleTokens}
                 onChange={(e) => updateField("styleTokens", e.target.value)}
@@ -252,7 +254,7 @@ export function StyleEditor({ styleId, onClose }: StyleEditorProps) {
           {/* 提取结果：sceneTokens */}
           {form.sceneTokens && (
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">🎬 场景/构图词（导演台/分镜使用）</Label>
+              <Label className="text-xs text-muted-foreground">{t("assets.styleEditor.sceneTokensLabel")}</Label>
               <textarea
                 value={form.sceneTokens}
                 onChange={(e) => updateField("sceneTokens", e.target.value)}
@@ -263,29 +265,29 @@ export function StyleEditor({ styleId, onClose }: StyleEditorProps) {
 
           {/* 负面提示词 */}
           <div className="space-y-1.5">
-            <Label className="text-xs">负面提示词</Label>
+            <Label className="text-xs">{t("assets.styleEditor.negativeLabel")}</Label>
             <textarea
               value={form.negativePrompt}
               onChange={(e) => updateField("negativePrompt", e.target.value)}
-              placeholder="不希望出现的元素，如：blurry, low quality, watermark"
+              placeholder={t("assets.styleEditor.negativePlaceholder")}
               className="w-full min-h-[80px] rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-y"
             />
           </div>
 
           {/* 描述 */}
           <div className="space-y-1.5">
-            <Label className="text-xs">描述</Label>
+            <Label className="text-xs">{t("assets.styleEditor.descLabel")}</Label>
             <textarea
               value={form.description}
               onChange={(e) => updateField("description", e.target.value)}
-              placeholder="简单描述这个风格的特点，方便以后查找"
+              placeholder={t("assets.styleEditor.descPlaceholder")}
               className="w-full min-h-[60px] rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-y"
             />
           </div>
 
           {/* 参考图上传 */}
           <div className="space-y-1.5">
-            <Label className="text-xs">参考图</Label>
+            <Label className="text-xs">{t("assets.styleEditor.refLabel")}</Label>
             <div className="space-y-2">
               {/* 已上传图片 */}
               {form.referenceImages.length > 0 && (
@@ -294,7 +296,7 @@ export function StyleEditor({ styleId, onClose }: StyleEditorProps) {
                     <div key={i} className="relative aspect-square rounded-md overflow-hidden border border-border group">
                       <LocalImage
                         src={img}
-                        alt={`参考图 ${i + 1}`}
+                        alt={t("assets.styleCard.refAlt", { n: i + 1 })}
                         className="w-full h-full object-cover"
                       />
                       <button
@@ -325,7 +327,7 @@ export function StyleEditor({ styleId, onClose }: StyleEditorProps) {
                 disabled={uploading}
               >
                 <ImagePlus className="w-3.5 h-3.5 mr-1.5" />
-                {uploading ? "上传中..." : "添加参考图"}
+                {uploading ? t("assets.styleEditor.uploading") : t("assets.styleEditor.addRef")}
               </Button>
             </div>
           </div>

@@ -13,6 +13,7 @@
  */
 
 import React, { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Check } from "lucide-react";
@@ -29,6 +30,12 @@ import {
   type VisualStyleId,
 } from "@/lib/constants/visual-styles";
 import { useCustomStyleStore } from "@/stores/custom-style-store";
+import {
+  getCategoryUiLabel,
+  getMediaUiLabel,
+  getStyleBadgeLabel,
+  getStyleUiLabels,
+} from "@/lib/i18n/visual-style-ui";
 
 // 风格分类对应的背景色（图片已移除，使用色块占位）
 const CATEGORY_COLORS: Record<string, string> = {
@@ -65,8 +72,10 @@ export function StylePicker({
   trigger,
   className,
   disabled = false,
-  placeholder = "选择风格",
+  placeholder,
 }: StylePickerProps) {
+  const { t, i18n } = useTranslation();
+  const placeholderText = placeholder ?? t("visualStyles.placeholder");
   const [hoveredStyle, setHoveredStyle] = useState<StylePreset | null>(null);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -91,6 +100,10 @@ export function StylePicker({
 
   // 预览的风格（悬停优先，否则显示选中的）
   const previewStyle = hoveredStyle || selectedStyle || VISUAL_STYLE_PRESETS[0];
+  const previewLabels = getStyleUiLabels(previewStyle, i18n.language);
+  const selectedLabels = selectedStyle
+    ? getStyleUiLabels(selectedStyle, i18n.language)
+    : null;
 
   // 处理选择
   const handleSelect = (style: StylePreset) => {
@@ -107,10 +120,10 @@ export function StylePicker({
       <ScrollArea className="w-[240px] border-r border-border">
         <div className="p-2">
           {STYLE_CATEGORIES.map((category) => (
-            <div key={category.id} className="mb-4">
+              <div key={category.id} className="mb-4">
               {/* 分类标题 */}
               <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground border-b border-border/50 mb-2">
-                {category.name}
+                {getCategoryUiLabel(category.id, i18n.language)}
               </div>
               {/* 风格列表 */}
               <div className="space-y-1">
@@ -118,6 +131,7 @@ export function StylePicker({
                   <StyleItem
                     key={style.id}
                     style={style}
+                    lng={i18n.language}
                     isSelected={value === style.id}
                     onSelect={() => handleSelect(style)}
                     onHover={() => setHoveredStyle(style)}
@@ -132,13 +146,14 @@ export function StylePicker({
           {customAsPresets.length > 0 && (
             <div className="mb-4">
               <div className="px-2 py-1.5 text-xs font-medium text-primary border-b border-primary/30 mb-2">
-                我的风格
+                {t("visualStyles.myStyles")}
               </div>
               <div className="space-y-1">
                 {customAsPresets.map((style) => (
                   <StyleItem
                     key={style.id}
                     style={style}
+                    lng={i18n.language}
                     isSelected={value === style.id}
                     isCustom
                     onSelect={() => handleSelect(style)}
@@ -159,14 +174,16 @@ export function StylePicker({
           "flex-1 flex flex-col items-center justify-center rounded-lg mb-3",
           CATEGORY_COLORS[previewStyle.category] || 'bg-muted/30'
         )}>
-          <div className="text-2xl font-bold mb-2">{previewStyle.name}</div>
-          <div className="text-xs opacity-70">{previewStyle.category.toUpperCase()} · {previewStyle.mediaType}</div>
+          <div className="text-2xl font-bold mb-2">{previewLabels.name}</div>
+          <div className="text-xs opacity-70">
+            {previewStyle.category.toUpperCase()} · {getMediaUiLabel(previewStyle.mediaType, i18n.language)}
+          </div>
         </div>
         {/* 风格信息 */}
         <div className="text-center">
-          <div className="font-medium text-sm mb-1">{previewStyle.name}</div>
+          <div className="font-medium text-sm mb-1">{previewLabels.name}</div>
           <div className="text-xs text-muted-foreground line-clamp-2">
-            {previewStyle.description}
+            {previewLabels.description}
           </div>
         </div>
       </div>
@@ -197,11 +214,13 @@ export function StylePicker({
                       ? 'bg-primary/20 text-primary'
                       : CATEGORY_COLORS[selectedStyle.category] || 'bg-muted'
                   )}>
-                    {selectedStyle.id.startsWith('custom_style_') ? '★' : selectedStyle.category === '3d' ? '3D' : selectedStyle.category === '2d' ? '2D' : selectedStyle.category === 'real' ? '真' : '定'}
+                    {selectedStyle.id.startsWith('custom_style_')
+                      ? getStyleBadgeLabel("custom", i18n.language)
+                      : getStyleBadgeLabel(selectedStyle.category, i18n.language)}
                   </span>
                 )}
                 <span className={!selectedStyle ? "text-muted-foreground" : ""}>
-                  {selectedStyle?.name || placeholder}
+                  {selectedLabels?.name ?? placeholderText}
                 </span>
               </div>
               <svg
@@ -235,6 +254,7 @@ export function StylePicker({
  */
 interface StyleItemProps {
   style: StylePreset;
+  lng: string;
   isSelected: boolean;
   isCustom?: boolean;
   onSelect: () => void;
@@ -242,7 +262,8 @@ interface StyleItemProps {
   onLeave: () => void;
 }
 
-function StyleItem({ style, isSelected, isCustom, onSelect, onHover, onLeave }: StyleItemProps) {
+function StyleItem({ style, lng, isSelected, isCustom, onSelect, onHover, onLeave }: StyleItemProps) {
+  const row = getStyleUiLabels(style, lng);
   return (
     <button
       className={cn(
@@ -259,10 +280,10 @@ function StyleItem({ style, isSelected, isCustom, onSelect, onHover, onLeave }: 
         "w-10 h-10 rounded flex items-center justify-center text-[10px] font-bold flex-shrink-0",
         isCustom ? 'bg-primary/20 text-primary' : CATEGORY_COLORS[style.category] || 'bg-muted'
       )}>
-        {isCustom ? '★' : style.category === '3d' ? '3D' : style.category === '2d' ? '2D' : style.category === 'real' ? '真' : '定'}
+        {isCustom ? getStyleBadgeLabel("custom", lng) : getStyleBadgeLabel(style.category, lng)}
       </span>
       {/* 名称 */}
-      <span className="flex-1 text-left text-sm truncate">{style.name}</span>
+      <span className="flex-1 text-left text-sm truncate">{row.name}</span>
       {/* 选中标记 */}
       {isSelected && (
         <Check className="w-4 h-4 text-primary flex-shrink-0" />

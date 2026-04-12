@@ -7,6 +7,7 @@
  */
 
 import { MEMEFAST_API_ORIGIN } from "@/constants/memefast";
+import { RUNNINGHUB_API_BASE_URL } from "@/constants/runninghub";
 
 // ==================== Types ====================
 
@@ -62,7 +63,7 @@ export const DEFAULT_PROVIDERS: Omit<IProvider, 'id' | 'apiKey'>[] = [
   {
     platform: 'runninghub',
     name: 'RunningHub',
-    baseUrl: 'https://www.runninghub.cn/openapi/v2',
+    baseUrl: RUNNINGHUB_API_BASE_URL,
     model: ['2009613632530812930'],
     capabilities: ['image_generation', 'vision'],
   },

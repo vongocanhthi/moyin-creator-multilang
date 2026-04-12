@@ -20,10 +20,13 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMemo, useCallback, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import { getWorkerBridge } from "@/lib/ai/worker-bridge";
 import { useAPIConfigStore } from "@/stores/api-config-store";
 
 export function GenerationProgress() {
+  const { t } = useTranslation();
   // Get current project data
   const projectData = useActiveDirectorProject();
   const screenplay = projectData?.screenplay || null;
@@ -125,7 +128,7 @@ export function GenerationProgress() {
             return;
           }
 
-          onSceneFailed(event.sceneId, '视频生成完成但未返回 mediaId');
+          onSceneFailed(event.sceneId, t("director.progress.errVideoNoMediaId"));
         });
         workerBridge.on('ALL_SCENES_COMPLETED', () => {
           onAllCompleted();
@@ -164,7 +167,7 @@ export function GenerationProgress() {
     } catch (error) {
       console.error('[GenerationProgress] Failed to start generation:', error);
     }
-  }, [screenplay, config, apiKeys, isImageMode, onSceneProgressUpdate, onSceneImageCompleted, onSceneCompleted, onSceneFailed, onAllImagesCompleted, onAllCompleted]);
+  }, [screenplay, config, apiKeys, isImageMode, onSceneProgressUpdate, onSceneImageCompleted, onSceneCompleted, onSceneFailed, onAllImagesCompleted, onAllCompleted, t]);
 
   // Track if we've already started generation for this screenplay
   const hasStartedRef = useRef<string | null>(null);
@@ -198,9 +201,12 @@ export function GenerationProgress() {
     <div className="border-t p-4 space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h3 className="font-medium text-sm">生成进度</h3>
+        <h3 className="font-medium text-sm">{t("director.progress.title")}</h3>
         <span className="text-sm text-muted-foreground">
-          {overallProgress.completed} / {overallProgress.total} 场景
+          {t("director.progress.scenesCount", {
+            done: overallProgress.completed,
+            total: overallProgress.total,
+          })}
         </span>
       </div>
 
@@ -221,25 +227,25 @@ export function GenerationProgress() {
           {statusCounts.completed > 0 && (
             <span className="flex items-center gap-1 text-green-500">
               <CheckCircle2 className="h-3 w-3" />
-              {statusCounts.completed} 完成
+              {t("director.progress.done", { n: statusCounts.completed })}
             </span>
           )}
           {statusCounts.generating > 0 && (
             <span className="flex items-center gap-1 text-primary">
               <Loader2 className="h-3 w-3 animate-spin" />
-              {statusCounts.generating} 生成中
+              {t("director.progress.generating", { n: statusCounts.generating })}
             </span>
           )}
           {statusCounts.pending > 0 && (
             <span className="flex items-center gap-1 text-muted-foreground">
               <Clock className="h-3 w-3" />
-              {statusCounts.pending} 等待
+              {t("director.progress.waiting", { n: statusCounts.pending })}
             </span>
           )}
           {statusCounts.failed > 0 && (
             <span className="flex items-center gap-1 text-destructive">
               <AlertCircle className="h-3 w-3" />
-              {statusCounts.failed} 失败
+              {t("director.progress.failed", { n: statusCounts.failed })}
             </span>
           )}
         </div>
@@ -248,7 +254,9 @@ export function GenerationProgress() {
       {/* Estimated time */}
       {isGenerating && !isComplete && (
         <p className="text-xs text-muted-foreground text-center">
-          预计剩余时间: {estimateRemainingTime(overallProgress.total - overallProgress.completed)}
+          {t("director.progress.eta", {
+            t: estimateRemainingTime(overallProgress.total - overallProgress.completed, t),
+          })}
         </p>
       )}
     </div>
@@ -256,14 +264,13 @@ export function GenerationProgress() {
 }
 
 // Estimate remaining time based on pending scenes
-function estimateRemainingTime(pendingScenes: number): string {
-  // Rough estimate: ~2 min per scene (image + video generation)
+function estimateRemainingTime(pendingScenes: number, t: TFunction): string {
   const minutes = pendingScenes * 2;
-  
-  if (minutes < 1) return "不到 1 分钟";
-  if (minutes < 60) return `约 ${minutes} 分钟`;
-  
+
+  if (minutes < 1) return t("director.progress.timeUnder1m");
+  if (minutes < 60) return t("director.progress.timeMinutes", { minutes });
+
   const hours = Math.floor(minutes / 60);
   const remainingMinutes = minutes % 60;
-  return `约 ${hours} 小时 ${remainingMinutes} 分钟`;
+  return t("director.progress.timeHours", { hours, minutes: remainingMinutes });
 }

@@ -18,7 +18,8 @@ import {
   FolderOpen,
   Box,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 
 // 导航节点类型
 export type AssetSection = "style-default" | "style-custom" | "props-library";
@@ -28,7 +29,6 @@ interface AssetSidebarProps {
   onSectionChange: (section: AssetSection) => void;
 }
 
-// 顶层模块定义（可插拔，后续在此数组追加新模块）
 interface NavModule {
   id: string;
   label: string;
@@ -36,30 +36,29 @@ interface NavModule {
   children: { id: AssetSection; label: string; icon: React.ElementType }[];
 }
 
-const NAV_MODULES: NavModule[] = [
-  {
-    id: "styles",
-    label: "风格库",
-    icon: Palette,
-    children: [
-      { id: "style-default", label: "默认风格", icon: Layers },
-      { id: "style-custom", label: "我的风格", icon: UserCircle },
-    ],
-  },
-  {
-    id: "props",
-    label: "道具库",
-    icon: Box,
-    children: [
-      { id: "props-library", label: "我的道具", icon: Box },
-    ],
-  },
-];
-
 export function AssetSidebar({ activeSection, onSectionChange }: AssetSidebarProps) {
-  const [expanded, setExpanded] = useState<Set<string>>(
-    new Set(NAV_MODULES.map((m) => m.id))
-  );
+  const { t } = useTranslation();
+  const [expanded, setExpanded] = useState<Set<string>>(new Set(["styles", "props"]));
+
+  const navModules = useMemo((): NavModule[] => {
+    return [
+      {
+        id: "styles",
+        label: t("assets.sidebar.stylesLib"),
+        icon: Palette,
+        children: [
+          { id: "style-default", label: t("assets.sidebar.defaultStyles"), icon: Layers },
+          { id: "style-custom", label: t("assets.sidebar.myStyles"), icon: UserCircle },
+        ],
+      },
+      {
+        id: "props",
+        label: t("assets.sidebar.propsLib"),
+        icon: Box,
+        children: [{ id: "props-library", label: t("assets.sidebar.myProps"), icon: Box }],
+      },
+    ];
+  }, [t]);
 
   const toggleModule = (id: string) => {
     setExpanded((prev) => {
@@ -76,13 +75,13 @@ export function AssetSidebar({ activeSection, onSectionChange }: AssetSidebarPro
       <div className="px-3 py-3 border-b border-border shrink-0">
         <div className="flex items-center gap-2">
           <FolderOpen className="w-4 h-4 text-primary" />
-          <span className="text-sm font-semibold">个人资产库</span>
+          <span className="text-sm font-semibold">{t("assets.sidebar.title")}</span>
         </div>
       </div>
 
       {/* 导航树 */}
       <div className="flex-1 overflow-y-auto py-2">
-        {NAV_MODULES.map((mod) => (
+        {navModules.map((mod) => (
           <div key={mod.id} className="mb-1">
             {/* 模块标题 */}
             <button

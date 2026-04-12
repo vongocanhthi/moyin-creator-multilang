@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Layout } from "@/components/Layout";
 import { Toaster } from "@/components/ui/sonner";
-import { UpdateDialog } from "@/components/UpdateDialog";
 import { useThemeStore } from "@/stores/theme-store";
 import { useAPIConfigStore } from "@/stores/api-config-store";
 import { useAppSettingsStore } from "@/stores/app-settings-store";
@@ -13,18 +12,11 @@ import i18n from "@/i18n/i18n";
 import { parseApiKeys } from "@/lib/api-key-manager";
 import { Loader2 } from "lucide-react";
 import { migrateToProjectStorage, recoverFromLegacy } from "@/lib/storage-migration";
-import type { AvailableUpdateInfo } from "@/types/update";
-
-let hasTriggeredStartupUpdateCheck = false;
-
 function App() {
   const { t } = useTranslation();
   const { theme } = useThemeStore();
   const locale = useAppSettingsStore((s) => s.locale);
-  const { updateSettings, setUpdateSettings } = useAppSettingsStore();
   const [isMigrating, setIsMigrating] = useState(true);
-  const [startupUpdate, setStartupUpdate] = useState<AvailableUpdateInfo | null>(null);
-  const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
 
   // 启动时运行存储迁移 + 数据恢复
   useEffect(() => {
@@ -93,43 +85,6 @@ function App() {
     });
   }, [isMigrating, locale]);
 
-  useEffect(() => {
-    if (
-      isMigrating ||
-      hasTriggeredStartupUpdateCheck ||
-      !updateSettings.autoCheckEnabled ||
-      !window.appUpdater
-    ) {
-      return;
-    }
-
-    hasTriggeredStartupUpdateCheck = true;
-    let cancelled = false;
-
-    (async () => {
-      const result = await window.appUpdater?.checkForUpdates();
-      if (
-        cancelled ||
-        !result ||
-        !result.success ||
-        !result.hasUpdate ||
-        !result.update ||
-        result.update.latestVersion === updateSettings.ignoredVersion
-      ) {
-        return;
-      }
-
-      setStartupUpdate(result.update);
-      setUpdateDialogOpen(true);
-    })().catch((error) => {
-      console.warn("[App] Auto update check failed:", error);
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [isMigrating, updateSettings.autoCheckEnabled, updateSettings.ignoredVersion]);
-
   // 迁移中显示加载界面
   if (isMigrating) {
     return (
@@ -145,15 +100,6 @@ function App() {
   return (
     <div className="h-screen w-screen overflow-hidden">
       <Layout />
-      <UpdateDialog
-        open={updateDialogOpen}
-        onOpenChange={setUpdateDialogOpen}
-        updateInfo={startupUpdate}
-        onIgnoreVersion={(version) => {
-          setUpdateSettings({ ignoredVersion: version });
-          setStartupUpdate(null);
-        }}
-      />
       <Toaster richColors position="top-center" />
     </div>
   );

@@ -37,6 +37,7 @@ import { useAppSettingsStore } from '@/stores/app-settings-store';
 import { useProjectStore } from '@/stores/project-store';
 import { toast } from "sonner";
 import { matchSceneAndViewpoint, matchSceneAndViewpointSync, type ViewpointMatchResult } from '@/lib/scene/viewpoint-matcher';
+import { useTranslation } from "react-i18next";
 
 // 状态图标
 function StatusIcon({ status }: { status?: CompletionStatus }) {
@@ -52,6 +53,7 @@ function StatusIcon({ status }: { status?: CompletionStatus }) {
 
 // 导出组件
 export function DirectorContextPanel() {
+  const { t } = useTranslation();
   const { setActiveTab, goToDirectorWithData } = useMediaPanelStore();
   const scriptProject = useActiveScriptProject();
   const { addScenesFromScript, setStoryboardConfig } = useDirectorStore();
@@ -100,14 +102,14 @@ export function DirectorContextPanel() {
     if (scriptData.episodes && scriptData.episodes.length > 0) {
       return scriptData.episodes;
     }
-    // 默认单集
+    // 默认单集（标题 fallback 随 UI 语言）
     return [{
       id: "default",
       index: 1,
-      title: scriptData.title || "第1集",
+      title: scriptData.title || t("director.context.episodeDefaultTitle"),
       sceneIds: scriptData.scenes.map((s) => s.id),
     }];
-  }, [scriptData]);
+  }, [scriptData, t]);
 
   // 按场景分组的shots
   const shotsByScene = useMemo(() => {
@@ -464,8 +466,10 @@ export function DirectorContextPanel() {
       photographyTechnique: shot.photographyTechnique,
     }]);
     
-    const matchInfo = sceneMatch ? ` (匹配: ${sceneMatch.matchedSceneName})` : '';
-    toast.success(`已添加分镜到编辑列表${matchInfo}`);
+    const matchInfo = sceneMatch
+      ? t("director.context.matchSceneLib", { name: sceneMatch.matchedSceneName })
+      : "";
+    toast.success(t("director.context.toastShotAdded", { detail: matchInfo }));
   };
 
   // 添加整个场景的所有分镜到分镜编辑（模式二）
@@ -476,7 +480,7 @@ export function DirectorContextPanel() {
       const fallbackPromptZh = scene.visualPrompt?.trim()
         || [scene.location, scene.atmosphere].filter(Boolean).join(' - ')
         || scene.name
-        || '场景描述';
+        || t("director.context.sceneDescFallback");
       const fallbackPromptEn = scene.visualPromptEn?.trim() || '';
       const matchedScene = sceneLibraryScenes.find((s) =>
         !s.parentSceneId &&
@@ -488,7 +492,7 @@ export function DirectorContextPanel() {
       );
 
       addScenesAndSyncStyle([{
-        sceneName: scene.name || scene.location || '未命名场景',
+        sceneName: scene.name || scene.location || t("director.context.unnamedScene"),
         sceneLocation: scene.location || '',
         promptZh: fallbackPromptZh,
         promptEn: fallbackPromptEn,
@@ -515,8 +519,10 @@ export function DirectorContextPanel() {
         sceneReferenceImage: matchedScene?.referenceImage || matchedScene?.referenceImageBase64,
       }]);
 
-      const matchInfo = matchedScene ? `（已匹配场景库：${matchedScene.name}）` : '';
-      toast.success(`该场景暂无分镜，已创建 1 条场景分镜${matchInfo}`);
+      const matchInfo = matchedScene
+        ? t("director.context.matchedLib", { name: matchedScene.name })
+        : "";
+      toast.success(t("director.context.toastScenePlaceholder", { detail: matchInfo }));
       return;
     }
     
@@ -605,8 +611,11 @@ export function DirectorContextPanel() {
     });
     
     addScenesAndSyncStyle(scenesToAdd);
-    const matchInfo = matchedCount > 0 ? ` (${matchedCount}个已匹配场景库)` : '';
-    toast.success(`已添加 ${scenesToAdd.length} 个分镜到编辑列表${matchInfo}`);
+    const matchInfo =
+      matchedCount > 0 ? t("director.context.matchedCount", { n: matchedCount }) : "";
+    toast.success(
+      t("director.context.toastBatchAdded", { n: scenesToAdd.length, detail: matchInfo }),
+    );
   };
 
   // 发送单个分镜到AI导演输入（模式一）
@@ -700,13 +709,13 @@ export function DirectorContextPanel() {
         <div className="p-3 border-b">
           <h3 className="font-medium text-sm flex items-center gap-2">
             <FileVideo className="h-4 w-4" />
-            剧本结构
+            {t("director.context.scriptStructure")}
           </h3>
         </div>
         <div className="flex-1 flex items-center justify-center p-4">
           <div className="text-center text-muted-foreground text-sm">
-            <p>暂无剧本数据</p>
-            <p className="mt-1">请先在剧本面板解析剧本</p>
+            <p>{t("director.context.noScript")}</p>
+            <p className="mt-1">{t("director.context.parseFirst")}</p>
           </div>
         </div>
         <div className="p-3 border-t">
@@ -717,7 +726,7 @@ export function DirectorContextPanel() {
             onClick={handleBackToScript}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            去剧本面板
+            {t("director.context.goScript")}
           </Button>
         </div>
       </div>
@@ -741,17 +750,17 @@ export function DirectorContextPanel() {
             )}
           </div>
           <span className="text-xs text-muted-foreground">
-            进度: {overallProgress}
+            {t("director.context.progress", { p: overallProgress })}
           </span>
         </div>
         <p className="text-xs text-muted-foreground mt-2">
-          点击场景/分镜可发送到AI导演输入
+          {t("director.context.hintClick")}
         </p>
         {/* 分镜编辑计数 */}
         {splitScenes.length > 0 && (
           <div className="mt-2 px-2 py-1 bg-green-500/10 rounded text-xs text-green-600 flex items-center gap-1">
             <Plus className="h-3 w-3" />
-            <span>已添加 {splitScenes.length} 个分镜到编辑列表</span>
+            <span>{t("director.context.addedShots", { n: splitScenes.length })}</span>
           </div>
         )}
       </div>
@@ -840,7 +849,7 @@ export function DirectorContextPanel() {
                                 e.stopPropagation();
                                 handleAddSceneToSplitScenes(scene);
                               }}
-                              title="添加所有分镜到分镜编辑"
+                              title={t("director.context.titleAddAll")}
                             >
                               <Plus className="h-3 w-3 text-green-500" />
                             </Button>
@@ -853,7 +862,7 @@ export function DirectorContextPanel() {
                                 e.stopPropagation();
                                 handleSendScene(scene);
                               }}
-                              title="发送整个场景到AI导演生成图片"
+                              title={t("director.context.titleSendScene")}
                             >
                               <Send className="h-3 w-3 text-primary" />
                             </Button>
@@ -874,13 +883,13 @@ export function DirectorContextPanel() {
                                         "flex-1 flex items-center gap-2 px-2 py-1 rounded hover:bg-muted text-left",
                                         isShotSelected && "bg-primary/10 ring-1 ring-primary/30"
                                       )}
-                                      title="单击: 发送到AI导演输入 | 双击: 直接添加到分镜编辑"
+                                      title={t("director.context.titleShotClick")}
                                     >
                                       <span className="text-xs font-mono text-muted-foreground w-5">
                                         {String(shot.index).padStart(2, "0")}
                                       </span>
                                       <span className="text-xs flex-1 truncate">
-                                        {shot.shotSize || "镜头"} - {shot.actionSummary?.slice(0, 20)}...
+                                        {shot.shotSize || t("director.context.shotFallback")} - {shot.actionSummary?.slice(0, 20)}...
                                       </span>
                                       <StatusIcon
                                         status={getShotCompletionStatus(shot)}
@@ -895,7 +904,7 @@ export function DirectorContextPanel() {
                                         e.stopPropagation();
                                         handleAddShotToSplitScenes(shot, scene);
                                       }}
-                                      title="添加到分镜编辑"
+                                      title={t("director.context.titleAddOne")}
                                     >
                                       <Plus className="h-3 w-3 text-green-500" />
                                     </Button>
@@ -919,8 +928,12 @@ export function DirectorContextPanel() {
       <div className="p-3 border-t space-y-2">
         {/* 模式说明 */}
         <div className="text-[10px] text-muted-foreground space-y-1">
-          <p><span className="text-green-500">+</span> 添加到分镜（单独生成图片）</p>
-          <p><span className="text-primary">→</span> 发送到输入（批量生成省钱）</p>
+          <p>
+            <span className="text-green-500">+</span> {t("director.context.modeAddBody")}
+          </p>
+          <p>
+            <span className="text-primary">→</span> {t("director.context.modeSendBody")}
+          </p>
         </div>
         <Button
           variant="outline"
@@ -929,7 +942,7 @@ export function DirectorContextPanel() {
           onClick={handleBackToScript}
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          返回剧本
+          {t("director.context.backScript")}
         </Button>
       </div>
     </div>

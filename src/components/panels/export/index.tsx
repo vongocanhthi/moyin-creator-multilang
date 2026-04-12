@@ -8,10 +8,13 @@
  * Based on CineGen-AI StageExport.tsx
  */
 
-import { useState, useCallback } from "react";
-import { useScriptStore, useActiveScriptProject } from "@/stores/script-store";
+import type { TFunction } from "i18next";
+import { useState, useCallback, useMemo } from "react";
+import { useTranslation } from "react-i18next";
+import { useActiveScriptProject } from "@/stores/script-store";
 import { useActiveDirectorProject } from "@/stores/director-store";
 import { useProjectStore } from "@/stores/project-store";
+import { getLocalizedDemoSeriesTitle } from "@/lib/i18n/demo-series-title";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -39,7 +42,27 @@ import {
 } from "@/lib/script/export-service";
 import { toast } from "sonner";
 
+/** Map Chinese progress strings from export-service to the active locale. */
+function localizeExportMessage(msg: string, t: TFunction): string {
+  if (msg === "准备导出...") return t("exportView.progress.preparingExport");
+  if (msg === "准备下载...") return t("exportView.progress.preparingDownload");
+  if (msg === "导出完成" || msg === "导出完成！") return t("exportView.progress.done");
+  if (msg === "已写入 manifest.json") return t("exportView.progress.manifestWritten");
+  const download = msg.match(/^下载 (.+)$/);
+  if (download) return t("exportView.progress.downloading", { name: download[1] });
+  const saved = msg.match(/^已保存 (.+)$/);
+  if (saved) return t("exportView.progress.saved", { name: saved[1] });
+  const first = msg.match(/^导出首帧 (.+)$/);
+  if (first) return t("exportView.progress.exportingFirstFrame", { name: first[1] });
+  const video = msg.match(/^导出视频 (.+)$/);
+  if (video) return t("exportView.progress.exportingVideo", { name: video[1] });
+  const end = msg.match(/^导出尾帧 (.+)$/);
+  if (end) return t("exportView.progress.exportingEndFrame", { name: end[1] });
+  return msg;
+}
+
 export function ExportView() {
+  const { t } = useTranslation();
   const { activeProject } = useProjectStore();
   const scriptProject = useActiveScriptProject();
   const directorProject = useActiveDirectorProject();
@@ -52,7 +75,17 @@ export function ExportView() {
   const splitScenes = directorProject?.splitScenes || [];
   const scriptData = scriptProject?.scriptData;
   const targetDuration = scriptProject?.targetDuration || "60s";
-  const projectName = (scriptData?.title || activeProject?.name || '未命名项目').replace(/[^a-zA-Z0-9\u4e00-\u9fa5_-]/g, '_');
+
+  const rawExportTitle = scriptData?.title || activeProject?.name;
+  const exportTitleDisplay = useMemo(() => {
+    if (!rawExportTitle) return t("exportView.unnamedProject");
+    return getLocalizedDemoSeriesTitle(activeProject?.id ?? null, rawExportTitle, t);
+  }, [rawExportTitle, activeProject?.id, t]);
+
+  const projectName = useMemo(
+    () => exportTitleDisplay.replace(/[^a-zA-Z0-9\u4e00-\u9fa5_-]/g, "_"),
+    [exportTitleDisplay]
+  );
 
   // === 进度计算：合并 Script shots 和 Director splitScenes 的状态 ===
   const hasSplitScenes = splitScenes.length > 0;
@@ -86,7 +119,7 @@ export function ExportView() {
   const handleExportToFolder = useCallback(async () => {
     if (isExporting) return;
     setIsExporting(true);
-    setExportProgress({ current: 0, total: 0, message: '准备导出...' });
+    setExportProgress({ current: 0, total: 0, message: t("exportView.progress.preparingExport") });
 
     try {
       if (hasSplitScenes) {
@@ -100,7 +133,7 @@ export function ExportView() {
           },
           (p) => setExportProgress(p)
         );
-        if (success) toast.success('导出完成！');
+        if (success) toast.success(t("exportView.toast.exportDone"));
       } else if (scriptData) {
         const success = await exportProjectToFolder(
           {
@@ -114,22 +147,22 @@ export function ExportView() {
           },
           (p) => setExportProgress(p)
         );
-        if (success) toast.success('导出完成！');
+        if (success) toast.success(t("exportView.toast.exportDone"));
       } else {
-        toast.error('没有可导出的数据');
+        toast.error(t("exportView.toast.noData"));
       }
     } catch (error) {
-      toast.error(`导出失败: ${(error as Error).message}`);
+      toast.error(t("exportView.toast.exportFailed", { error: (error as Error).message }));
     } finally {
       setIsExporting(false);
       setExportProgress(null);
     }
-  }, [isExporting, hasSplitScenes, splitScenes, scriptData, shots, targetDuration, projectName]);
+  }, [isExporting, hasSplitScenes, splitScenes, scriptData, shots, targetDuration, projectName, t]);
 
   const handleDownloadFiles = useCallback(async () => {
     if (isExporting) return;
     setIsExporting(true);
-    setExportProgress({ current: 0, total: 0, message: '准备下载...' });
+    setExportProgress({ current: 0, total: 0, message: t("exportView.progress.preparingDownload") });
 
     try {
       if (hasSplitScenes) {
@@ -157,14 +190,14 @@ export function ExportView() {
           (p) => setExportProgress(p)
         );
       }
-      toast.success('下载完成！');
+      toast.success(t("exportView.toast.downloadDone"));
     } catch (error) {
-      toast.error(`下载失败: ${(error as Error).message}`);
+      toast.error(t("exportView.toast.downloadFailed", { error: (error as Error).message }));
     } finally {
       setIsExporting(false);
       setExportProgress(null);
     }
-  }, [isExporting, hasSplitScenes, splitScenes, scriptData, shots, targetDuration, projectName]);
+  }, [isExporting, hasSplitScenes, splitScenes, scriptData, shots, targetDuration, projectName, t]);
 
   return (
     <div className="flex flex-col h-full bg-background overflow-hidden">
@@ -173,15 +206,15 @@ export function ExportView() {
         <div className="flex items-center gap-4">
           <h2 className="text-lg font-bold text-foreground flex items-center gap-3">
             <Film className="w-5 h-5 text-primary" />
-            成片与导出
+            {t("exportView.title")}
             <span className="text-xs text-muted-foreground font-mono font-normal uppercase tracking-wider bg-muted px-2 py-1 rounded">
-              Rendering & Export
+              {t("exportView.subtitle")}
             </span>
           </h2>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-[10px] text-muted-foreground font-mono uppercase bg-muted border border-border px-2 py-1 rounded">
-            Status: {progress === 100 ? "READY" : "IN PROGRESS"}
+            {t("exportView.status")}: {progress === 100 ? t("exportView.ready") : t("exportView.inProgress")}
           </span>
         </div>
       </div>
@@ -199,30 +232,30 @@ export function ExportView() {
                 <div>
                   <div className="flex items-center gap-3 mb-2">
                     <h3 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">
-                      {scriptData?.title || activeProject?.name || "未命名项目"}
+                      {exportTitleDisplay}
                     </h3>
                     <span className="px-2 py-0.5 bg-muted border border-border text-muted-foreground text-[10px] rounded uppercase font-mono tracking-wider">
-                      Master Sequence
+                      {t("exportView.masterSequence")}
                     </span>
                   </div>
                   <div className="flex items-center gap-6 mt-3">
                     <div className="flex flex-col">
                       <span className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold mb-0.5">
-                        {hasSplitScenes ? 'Split Scenes' : 'Shots'}
+                        {hasSplitScenes ? t("exportView.labelSplitScenes") : t("exportView.labelShots")}
                       </span>
                       <span className="text-sm font-mono text-foreground/80">{totalItems}</span>
                     </div>
                     <div className="w-px h-6 bg-border" />
                     <div className="flex flex-col">
                       <span className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold mb-0.5">
-                        Est. Duration
+                        {t("exportView.estDuration")}
                       </span>
                       <span className="text-sm font-mono text-foreground/80">~{estimatedDuration}s</span>
                     </div>
                     <div className="w-px h-6 bg-border" />
                     <div className="flex flex-col">
                       <span className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold mb-0.5">
-                        Target
+                        {t("exportView.target")}
                       </span>
                       <span className="text-sm font-mono text-foreground/80">{targetDuration}</span>
                     </div>
@@ -240,7 +273,7 @@ export function ExportView() {
                     ) : (
                       <BarChart3 className="w-3 h-3" />
                     )}
-                    Render Status
+                    {t("exportView.renderStatus")}
                   </div>
                 </div>
               </div>
@@ -248,14 +281,14 @@ export function ExportView() {
               {/* Timeline Visualizer Strip */}
               <div className="mb-10">
                 <div className="flex justify-between text-[10px] text-muted-foreground font-mono uppercase tracking-widest mb-2 px-1">
-                  <span>Sequence Map{hasSplitScenes ? ' (Director)' : ''}</span>
-                  <span>TC 00:00:00:00</span>
+                  <span>{hasSplitScenes ? t("exportView.sequenceMapDirector") : t("exportView.sequenceMapScript")}</span>
+                  <span>{t("exportView.timecode")}</span>
                 </div>
                 <div className="h-20 bg-muted/30 rounded-lg border border-border flex items-center px-2 gap-1 overflow-x-auto relative shadow-inner">
                   {totalItems === 0 ? (
                     <div className="w-full flex items-center justify-center text-muted-foreground/50 text-xs font-mono uppercase tracking-widest">
                       <Film className="w-4 h-4 mr-2" />
-                      No Shots Available
+                      {t("exportView.noShotsAvailable")}
                     </div>
                   ) : hasSplitScenes ? (
                     splitScenes.map((scene, idx) => {
@@ -272,7 +305,10 @@ export function ExportView() {
                               ? "bg-primary/40 border border-primary/30 hover:bg-primary/50"
                               : "bg-muted border border-border hover:bg-muted/80"
                           )}
-                          title={`Scene ${idx + 1}: ${scene.actionSummary || scene.sceneName || ''}`}
+                          title={t("exportView.sceneTitle", {
+                            n: idx + 1,
+                            detail: scene.actionSummary || scene.sceneName || "",
+                          })}
                         >
                           {hasVideo && <div className="h-full w-full bg-green-500/20" />}
                           {hasImage && !hasVideo && <div className="h-full w-full bg-primary/20" />}
@@ -280,7 +316,11 @@ export function ExportView() {
                           {/* Hover Tooltip */}
                           <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20 whitespace-nowrap">
                             <div className="bg-popover text-popover-foreground text-[10px] px-2 py-1 rounded border border-border shadow-xl">
-                              Scene {idx + 1}{hasVideo ? ' ✓视频' : hasImage ? ' ✓图片' : ''}
+                              {hasVideo
+                                ? t("exportView.tooltipSceneVideo", { n: idx + 1 })
+                                : hasImage
+                                  ? t("exportView.tooltipSceneImage", { n: idx + 1 })
+                                  : t("exportView.tooltipSceneEmpty", { n: idx + 1 })}
                             </div>
                           </div>
                         </div>
@@ -298,14 +338,17 @@ export function ExportView() {
                               ? "bg-primary/40 border border-primary/30 hover:bg-primary/50"
                               : "bg-muted border border-border hover:bg-muted/80"
                           )}
-                          title={`Shot ${idx + 1}: ${shot.actionSummary}`}
+                          title={t("exportView.shotTitle", {
+                            n: idx + 1,
+                            detail: shot.actionSummary || "",
+                          })}
                         >
                           {isDone && <div className="h-full w-full bg-primary/20" />}
                           
                           {/* Hover Tooltip */}
                           <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20 whitespace-nowrap">
                             <div className="bg-popover text-popover-foreground text-[10px] px-2 py-1 rounded border border-border shadow-xl">
-                              Shot {idx + 1}
+                              {t("exportView.tooltipShot", { n: idx + 1 })}
                             </div>
                           </div>
                         </div>
@@ -316,8 +359,8 @@ export function ExportView() {
                 {/* 图片/视频状态摘要 */}
                 {hasSplitScenes && (
                   <div className="flex items-center gap-4 mt-2 text-[10px] text-muted-foreground">
-                    <span>图片: {imageReadyItems}/{totalItems}</span>
-                    <span>视频: {completedItems}/{totalItems}</span>
+                    <span>{t("exportView.imagesProgress", { ready: imageReadyItems, total: totalItems })}</span>
+                    <span>{t("exportView.videosProgress", { ready: completedItems, total: totalItems })}</span>
                   </div>
                 )}
               </div>
@@ -326,7 +369,7 @@ export function ExportView() {
               {exportProgress && (
                 <div className="mb-6 space-y-2">
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{exportProgress.message}</span>
+                    <span>{localizeExportMessage(exportProgress.message, t)}</span>
                     {exportProgress.total > 0 && (
                       <span>{exportProgress.current}/{exportProgress.total}</span>
                     )}
@@ -351,9 +394,9 @@ export function ExportView() {
                   )}
                 >
                   {isExporting ? (
-                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" />导出中...</>
+                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t("exportView.exporting")}</>
                   ) : (
-                    <><FolderOpen className="w-4 h-4 mr-2" />选择文件夹导出</>
+                    <><FolderOpen className="w-4 h-4 mr-2" />{t("exportView.exportToFolder")}</>
                   )}
                 </Button>
 
@@ -364,14 +407,21 @@ export function ExportView() {
                   className="h-12 font-bold text-xs uppercase tracking-widest"
                 >
                   <Download className="w-4 h-4 mr-2" />
-                  逐个下载素材
+                  {t("exportView.downloadAssets")}
                 </Button>
               </div>
 
               {/* Export stats hint */}
               {hasSplitScenes && directorStats && (
                 <div className="mt-4 text-xs text-muted-foreground">
-                  可导出: {directorStats.imagesReady} 张首帧 · {directorStats.videosReady} 个视频{directorStats.endFramesReady > 0 ? ` · ${directorStats.endFramesReady} 张尾帧` : ''}
+                  {t("exportView.exportableHint", {
+                    images: directorStats.imagesReady,
+                    videos: directorStats.videosReady,
+                    endFrames:
+                      directorStats.endFramesReady > 0
+                        ? t("exportView.endFramesExtra", { count: directorStats.endFramesReady })
+                        : "",
+                  })}
                 </div>
               )}
             </div>
@@ -387,27 +437,27 @@ export function ExportView() {
               >
                 <Layers className="w-5 h-5 text-muted-foreground group-hover:text-primary mb-4 transition-colors" />
                 <div>
-                  <h4 className="text-sm font-bold text-foreground mb-1">素材下载</h4>
+                  <h4 className="text-sm font-bold text-foreground mb-1">{t("exportView.cardDownloadTitle")}</h4>
                   <p className="text-[10px] text-muted-foreground">
-                    下载所有已生成的图片和视频素材
+                    {t("exportView.cardDownloadDesc")}
                   </p>
                 </div>
               </div>
               <div className="p-5 bg-card border border-border rounded-xl hover:border-primary/50 transition-colors group cursor-pointer flex flex-col justify-between h-32">
                 <Share2 className="w-5 h-5 text-muted-foreground group-hover:text-primary mb-4 transition-colors" />
                 <div>
-                  <h4 className="text-sm font-bold text-foreground mb-1">Share Project</h4>
+                  <h4 className="text-sm font-bold text-foreground mb-1">{t("exportView.cardShareTitle")}</h4>
                   <p className="text-[10px] text-muted-foreground">
-                    Create a view-only link for client review.
+                    {t("exportView.cardShareDesc")}
                   </p>
                 </div>
               </div>
               <div className="p-5 bg-card border border-border rounded-xl hover:border-primary/50 transition-colors group cursor-pointer flex flex-col justify-between h-32">
                 <Clock className="w-5 h-5 text-muted-foreground group-hover:text-primary mb-4 transition-colors" />
                 <div>
-                  <h4 className="text-sm font-bold text-foreground mb-1">Render Logs</h4>
+                  <h4 className="text-sm font-bold text-foreground mb-1">{t("exportView.cardLogsTitle")}</h4>
                   <p className="text-[10px] text-muted-foreground">
-                    View generation history and token usage.
+                    {t("exportView.cardLogsDesc")}
                   </p>
                 </div>
               </div>

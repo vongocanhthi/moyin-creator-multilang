@@ -77,23 +77,23 @@ export function APISettings({ collapsed = true, onToggleCollapse }: APISettingsP
       id: ProviderId;
       name: string;
       description: string;
-      services: string[];
     }> => [
       {
         id: "memefast",
         name: t("settings.api.memefastTitle"),
-        description: "全功能 AI 中转，支持对话/图片/视频/图片理解",
-        services: ["对话", "图片", "视频", "图片理解"],
+        description: t("director.apiSettings.memefastDesc"),
       },
       {
         id: "runninghub",
         name: t("settings.api.runninghubTitle"),
-        description: "Qwen 视角切换 / 多角度生成",
-        services: ["视角切换", "图生图"],
+        description: t("director.apiSettings.runninghubDesc"),
       },
     ],
     [t],
   );
+
+  const memefastServiceKeys = ["chat", "image", "video", "vision"] as const;
+  const runninghubServiceKeys = ["angle", "i2i"] as const;
 
   if (collapsed) {
     return (
@@ -105,7 +105,7 @@ export function APISettings({ collapsed = true, onToggleCollapse }: APISettingsP
       >
         <span className="flex items-center gap-2">
           <Settings className="h-4 w-4" />
-          API 设置
+          {t("director.apiSettings.title")}
         </span>
         <ChevronDown className="h-4 w-4" />
       </Button>
@@ -118,7 +118,7 @@ export function APISettings({ collapsed = true, onToggleCollapse }: APISettingsP
       <div className="flex items-center justify-between">
         <h3 className="font-medium text-sm flex items-center gap-2">
           <Settings className="h-4 w-4" />
-          API 设置
+          {t("director.apiSettings.title")}
         </h3>
         <Button
           variant="ghost"
@@ -139,7 +139,7 @@ export function APISettings({ collapsed = true, onToggleCollapse }: APISettingsP
               {isConfigured(provider.id) && (
                 <span className="text-xs text-green-500 flex items-center gap-1">
                   <Check className="h-3 w-3" />
-                  已配置
+                  {t("director.apiSettings.configured")}
                 </span>
               )}
             </div>
@@ -148,7 +148,7 @@ export function APISettings({ collapsed = true, onToggleCollapse }: APISettingsP
               <div className="relative flex-1">
                 <Input
                   type={showKeys[provider.id] ? "text" : "password"}
-                  placeholder={`输入 ${provider.name} API Key`}
+                  placeholder={t("director.apiSettings.placeholderKey", { name: provider.name })}
                   value={apiKeys[provider.id] || ""}
                   onChange={(e) => setApiKey(provider.id, e.target.value)}
                   className="pr-10 text-sm"
@@ -179,18 +179,20 @@ export function APISettings({ collapsed = true, onToggleCollapse }: APISettingsP
                 ) : testResults[provider.id] === false ? (
                   <X className="h-4 w-4 text-destructive" />
                 ) : (
-                  "测试"
+                  t("director.apiSettings.test")
                 )}
               </Button>
             </div>
             {/* Service badges */}
             <div className="flex gap-1">
-              {provider.services.map((service) => (
+              {(provider.id === "memefast" ? memefastServiceKeys : runninghubServiceKeys).map((key) => (
                 <span
-                  key={service}
+                  key={key}
                   className="text-[10px] px-1.5 py-0.5 rounded bg-muted"
                 >
-                  {service}
+                  {provider.id === "memefast"
+                    ? t(`director.apiSettings.memefastServices.${key}`)
+                    : t(`director.apiSettings.runninghubServices.${key}`)}
                 </span>
               ))}
             </div>
@@ -200,7 +202,7 @@ export function APISettings({ collapsed = true, onToggleCollapse }: APISettingsP
 
       {/* Concurrency Setting */}
       <div className="pt-2 border-t space-y-2">
-        <Label className="text-sm font-medium">并发设置</Label>
+        <Label className="text-sm font-medium">{t("director.apiSettings.concurrency")}</Label>
         <div className="flex items-center gap-2">
           <Input
             type="number"
@@ -211,7 +213,7 @@ export function APISettings({ collapsed = true, onToggleCollapse }: APISettingsP
             className="w-20 text-sm"
           />
           <span className="text-xs text-muted-foreground">
-            同时生成场景数（单 Key 建议设为 1）
+            {t("director.apiSettings.concurrencyHint")}
           </span>
         </div>
       </div>
@@ -219,7 +221,7 @@ export function APISettings({ collapsed = true, onToggleCollapse }: APISettingsP
       {/* Tips */}
       <div className="pt-2 border-t">
         <p className="text-xs text-muted-foreground">
-          💡 API Key 仅存储在本地浏览器，不会上传到服务器
+          {t("director.apiSettings.keyLocalTip")}
         </p>
       </div>
     </div>

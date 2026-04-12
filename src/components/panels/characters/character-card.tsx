@@ -8,7 +8,8 @@
  * Displays character info with drag support for AI Director
  */
 
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { type Character, useCharacterLibraryStore } from "@/stores/character-library-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,7 +48,18 @@ export function CharacterCard({
   onSelect, 
   onDelete 
 }: CharacterCardProps) {
+  const { t } = useTranslation();
   const { updateCharacter } = useCharacterLibraryStore();
+
+  const viewLabels = useMemo(
+    () => ({
+      front: t("characters.viewTypes.front"),
+      side: t("characters.viewTypes.side"),
+      back: t("characters.viewTypes.back"),
+      "three-quarter": t("characters.viewTypes.threeQuarter"),
+    }),
+    [t]
+  );
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(character.name);
   const [showWardrobe, setShowWardrobe] = useState(false);
@@ -208,7 +220,9 @@ export function CharacterCard({
             <div className="flex items-center gap-1">
               <ImageIcon className="h-3 w-3 text-muted-foreground" />
               <span className="text-xs text-muted-foreground">
-                {viewCount > 0 ? `${viewCount} 视图` : "未生成"}
+                {viewCount > 0
+                  ? t("characters.card.views", { count: viewCount })
+                  : t("characters.card.notGenerated")}
               </span>
             </div>
             <Button
@@ -221,7 +235,9 @@ export function CharacterCard({
               }}
             >
               <Shirt className="h-3 w-3" />
-              {variationCount > 0 ? `${variationCount} 变体` : "衣橱"}
+              {variationCount > 0
+                ? t("characters.card.variants", { count: variationCount })
+                : t("characters.card.wardrobe")}
             </Button>
           </div>
         </div>
@@ -230,7 +246,7 @@ export function CharacterCard({
       {/* Expanded views preview */}
       {isSelected && character.views.length > 0 && (
         <div className="mt-3 pt-3 border-t">
-          <div className="text-xs text-muted-foreground mb-2">角色视图</div>
+          <div className="text-xs text-muted-foreground mb-2">{t("characters.card.sectionViews")}</div>
           <div className="grid grid-cols-4 gap-2">
             {character.views.map((view) => (
               <div 
@@ -244,9 +260,7 @@ export function CharacterCard({
                 />
                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                   <span className="text-[10px] text-white capitalize">
-                    {view.viewType === 'front' ? '正面' : 
-                     view.viewType === 'side' ? '侧面' : 
-                     view.viewType === 'back' ? '背面' : '四分之三'}
+                    {viewLabels[view.viewType as keyof typeof viewLabels] || view.viewType}
                   </span>
                 </div>
               </div>
@@ -258,7 +272,7 @@ export function CharacterCard({
       {/* Expanded variations preview */}
       {isSelected && variationCount > 0 && (
         <div className="mt-3 pt-3 border-t">
-          <div className="text-xs text-muted-foreground mb-2">衣橱变体</div>
+          <div className="text-xs text-muted-foreground mb-2">{t("characters.card.sectionWardrobe")}</div>
           <div className="grid grid-cols-4 gap-2">
             {character.variations?.slice(0, 4).map((variation) => (
               <div 
@@ -302,15 +316,15 @@ export function CharacterCard({
       <ContextMenuContent>
         <ContextMenuItem onClick={handleStartRename}>
           <Edit3 className="h-4 w-4 mr-2" />
-          改名
+          {t("characters.card.ctxRename")}
         </ContextMenuItem>
         <ContextMenuItem onClick={handleCopyName}>
           <Copy className="h-4 w-4 mr-2" />
-          复制名称
+          {t("characters.card.ctxCopyName")}
         </ContextMenuItem>
         <ContextMenuItem onClick={() => setShowWardrobe(true)}>
           <Shirt className="h-4 w-4 mr-2" />
-          管理衣橱
+          {t("characters.card.ctxWardrobe")}
         </ContextMenuItem>
         <ContextMenuSeparator />
         <ContextMenuItem 
@@ -318,7 +332,7 @@ export function CharacterCard({
           className="text-destructive focus:text-destructive"
         >
           <Trash2 className="h-4 w-4 mr-2" />
-          删除角色
+          {t("characters.card.ctxDelete")}
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>
