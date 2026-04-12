@@ -2,7 +2,7 @@
   <img src="build/icon.png" width="120" alt="Moyin Creator Logo" />
 </p>
 
-<h1 align="center">Moyin Creator 魔因漫创</h1>
+<h1 align="center">Moyin Creator</h1>
 
 <p align="center">
   <strong>🎬 AI-Powered Film & Anime Production Tool · Seedance 2.0 · Script-to-Film Batch Pipeline</strong>
@@ -15,11 +15,7 @@
 </p>
 
 <p align="center">
-  <strong>🇬🇧 English</strong> | <a href="README_ZH.md">🇨🇳 中文</a> | <a href="README_VI.md">🇻🇳 Tiếng Việt</a>
-</p>
-
-<p align="center">
-  <a href="docs/WORKFLOW_GUIDE_EN.md"><strong>📖 Workflow tutorial</strong></a> •
+  <a href="docs/WORKFLOW_GUIDE.md"><strong>📖 Workflow tutorial</strong></a> •
   <a href="#features">Features</a> •
   <a href="#quick-start">Quick Start</a> •
   <a href="#architecture">Architecture</a> •
@@ -167,11 +163,3 @@ If you need closed-source usage or integration into commercial products, please 
 ## Contributing
 
 Contributions are welcome! Please read the [Contributing Guide](CONTRIBUTING.md) for details.
-
-## Contact
-
-- 🐙 GitHub: [https://github.com/vongocanhthi/moyin-creator-multilang](https://github.com/vongocanhthi/moyin-creator-multilang)
-
----
-
-<p align="center">Made with ❤️ by <a href="https://github.com/MemeCalculate">MemeCalculate</a></p>

@@ -1,147 +1,145 @@
-# 完整的安装前帮助可以看这里
+# Pre-install setup (Feishu wiki, Chinese)
 https://kvodb27hf3.feishu.cn/wiki/JjSmwf173iN3fqkjXakcGbvTnEf?from=from_copylink
 
-其他语言：**[English](./WORKFLOW_GUIDE_EN.md)** · **[Tiếng Việt](./WORKFLOW_GUIDE_VI.md)**
+# 🎬 Moyin Creator — Basic workflow tutorial
 
-# 🎬 魔因漫创 — 基本工作流教程
+> End-to-end guide from script to finished video
 
-> 从剧本到成片的完整创作流程指南
-
-魔因漫创内置了多种工作流，各板块可以自由组合、独立使用，满足不同创作场景的需求。**本教程介绍的是最常用的基础工作流，推荐新用户从这里开始。**
+Moyin Creator supports multiple workflows; panels can be combined or used standalone for different creative needs. **This tutorial covers the most common baseline workflow** — a good place for new users to start.
 
 ---
 
-## 📋 流程总览
+## 📋 Overview
 
 ```
-⚙️ 准备工作 → 📝 剧本 → 🔧 AI校准 → 🌄 场景/🎭 角色（可选） → 🎬 导演 / ⭐ S级 → 🎥 生成视频
+⚙️ Setup → 📝 Script → 🔧 AI refinement → 🌄 Scenes / 🎭 Characters (optional) → 🎬 Director / ⭐ S-Class → 🎥 Video generation
 ```
 
 ---
 
-## 准备工作：环境配置
+## Setup: environment
 
-在开始创作前，需要先完成以下配置：
+Before you create a project, complete the following:
 
-### 1. 添加 API 服务商
+### 1. Add API providers
 
-进入 **设置 → API 配置 → 添加服务商**，配置你的 AI 服务商账号。
+Go to **Settings → API → Add provider** and configure your AI provider account.
 
-- 建议添加 **尽可能多的 API Key**，系统支持多 Key 轮询负载均衡
-- Key 越多，**并发线程数越高**，批量生成速度越快
-- 支持的服务商：memefast、RunningHub 等
+- Add **as many API keys as practical** — the app rotates keys for load balancing
+- More keys generally allow **higher concurrency** and faster batch generation
+- Supported providers include memefast, RunningHub, etc.
 
-### 2. 服务映射
+### 2. Service mapping
 
-进入 **设置 → 服务映射**，为各功能选择对应的 AI 模型：
+Go to **Settings → Service mapping** and assign models for each capability:
 
-- 为「文生图」「图生视频」「文生视频」等功能分别指定模型
-- 根据你的服务商和需求选择合适的模型
+- Pick models for text-to-image, image-to-video, text-to-video, etc.
+- Choose models that match your provider and creative goals
 
-> 💡 **新手推荐**：测试时建议先用以下模型：
-> - **图片生成**：`gemini-3-pro-image-preview`
-> - **视频生成**：`doubao-seedance-1-5-pro-251215`
+> 💡 **Suggested for testing:**
+> - **Image generation:** `gemini-3-pro-image-preview`
+> - **Video generation:** `doubao-seedance-1-5-pro-251215`
 
-### 3. 图床配置
+### 3. Image host
 
-进入 **设置 → 图床配置**，配置图片托管服务：
+Go to **Settings → Image host** and configure hosting for uploads:
 
-- 申请一个图床服务（用于上传参考图、首帧图等素材）
-- 同样建议配置 **多个 Key**，提升并发上传速度
+- Set up an image host (for reference frames, first frames, and other assets)
+- Prefer **multiple keys** where supported to improve concurrent upload throughput
 
-> ✅ 以上配置完成后，就可以开始创作了。
-
----
-
-## 第一步：剧本板块
-
-进入 **剧本板块**，有两种方式开始：
-
-- **A. 导入剧本** — 将已有的完整剧本粘贴或导入到编辑区
-- **B. AI 创作** — 使用 AI 辅助从零创作剧本
-
-> 📄 **剧本格式参考**：查看 [剧本导入格式示例](./SCRIPT_FORMAT_EXAMPLE.md)，了解标准的场景头、对白、舞台指示等写法。
-
-系统会自动对剧本进行结构化分析，拆解为场景、分镜、角色、对白等元素。
+> ✅ After the above, you are ready to create.
 
 ---
 
-## 第二步：AI 二次校准
+## Step 1: Script panel
 
-系统自动分析完成后，依次点击以下三个校准按钮进行 **二次深化**：
+Open the **Script** panel. You can start in two ways:
 
-1. **AI 场景校准** — 优化每个场景的环境描述、氛围、光影等细节
-2. **API 校准分镜** — 精确校准每个分镜的镜头语言、景别、构图
-3. **AI 角色校准** — 深化角色外观描述、表情、动作等一致性锚点
+- **A. Import a script** — paste or import an existing full script into the editor
+- **B. AI-assisted writing** — draft a script from scratch with AI help
 
-> 校准后，系统会自动为每一步生成更精细、更专业的提示词，大幅提升后续生图/生视频的质量。
+> 📄 **Script format:** see [Script import format example](./SCRIPT_FORMAT_EXAMPLE.md) for scene headings, dialogue, stage directions, etc.
 
----
-
-## 第三步：生成素材（可选）
-
-校准完成后，可以选择性地预先生成素材：
-
-- **A. 生成场景** — 根据校准后的场景描述批量生成场景参考图
-- **B. 生成角色** — 根据校准后的角色描述生成角色参考图
-
-> 这一步是可选的。如果直接进入导演/S级板块，系统也会自动调用相关素材。
+The app parses the script into scenes, shots, characters, and lines.
 
 ---
 
-## 第四步：进入导演板块 / S级板块
+## Step 2: Second-pass AI refinement
 
-切换到 **导演板块** 或 **⭐ S级板块**：
+After automatic analysis finishes, run the three refinement actions in order for **deeper polish**:
 
-1. 点击 **右边栏「加载剧本分镜」** — 将剧本中的所有分镜导入当前板块
-2. **左边栏** 会自动为每个分镜填写：
-   - 首帧提示词
-   - 尾帧提示词
-   - 视频提示词
-3. 所有参数均可根据个人喜好 **自由微调**（如镜头运动、时长、风格等）
+1. **AI scene refinement** — improves environment, mood, lighting, and other scene details  
+2. **API shot refinement** — tightens lens language, shot scale, and composition per shot  
+3. **AI character refinement** — strengthens appearance, expression, and motion anchors for consistency  
 
----
-
-## 第五步：生成图片与视频
-
-在导演板块 / S级板块的 **分镜编辑** 中（左边栏）：
-
-### 生图方式（二选一）
-
-- **A. 单镜生成** — 逐个分镜单独生成图片
-- **B. 合并生成（推荐）** — 将多个分镜合并批量生成
-
-> 💡 **推荐使用「合并生成」**，生成后的图片会自动分配到对应的每一个分镜上。
-
-### 生成视频
-
-图片分配完成后，点击 **「生成视频」** 即可开始批量生成分镜视频。
+> Refined outputs feed better prompts for later image and video generation.
 
 ---
 
-## 第六步：S级板块 — Seedance 2.0 进阶
+## Step 3: Generate assets (optional)
 
-S级板块支持 **Seedance 2.0** 的多镜头合并叙事功能：
+After refinement, you may pre-generate assets:
 
-1. 导入剧本后，可以自由选择 **视频分组长短**：
-   - 1 个镜头 → 15 秒短片
-   - 多个镜头合并 → 15 秒叙事片段
-   - 根据需要灵活调整分组
-2. 系统自动收集 @Image / @Video / @Audio 多模态引用
-3. 点击 **「生成视频」** 即可
+- **A. Generate scenes** — batch scene reference images from refined scene descriptions  
+- **B. Generate characters** — character reference images from refined character descriptions  
 
-> S级板块会自动处理首帧图拼接、提示词三层融合（动作 + 镜头语言 + 对白唇形同步）、参数约束校验等。
+> This step is optional. Director / S-Class can still pull assets automatically if you skip it.
 
 ---
 
-## 💡 小贴士
+## Step 4: Director / S-Class
 
-- **先校准，再生成** — 二次校准能显著提升输出质量，不要跳过
-- **合并生成优先** — 合并生成比单镜生成效率更高，风格更统一
-- **参数可调** — 每个分镜的提示词、首帧、尾帧都支持手动微调
-- **S级板块适合** — 需要多镜头连贯叙事的场景（短剧、番剧预告等）
-- **导演板块适合** — 逐镜头精细控制的场景
+Switch to **Director** or **⭐ S-Class**:
+
+1. Click **“Load script shots”** in the right sidebar to import all shots from the script  
+2. The **left sidebar** fills prompts per shot:  
+   - First-frame prompt  
+   - Last-frame prompt  
+   - Video prompt  
+3. Adjust any parameter to taste (motion, duration, style, etc.)
 
 ---
 
-> 有问题？查看 [README](../README.md)
+## Step 5: Images and video
+
+In **shot editing** (left sidebar) on Director / S-Class:
+
+### Image generation (choose one)
+
+- **A. Per-shot** — generate images shot by shot  
+- **B. Merged batch (recommended)** — batch several shots in one run  
+
+> 💡 **Merged batch** is recommended; resulting images are mapped back to the correct shots.
+
+### Video generation
+
+After images are assigned, use **“Generate video”** to batch-generate shot videos.
+
+---
+
+## Step 6: S-Class — Seedance 2.0
+
+S-Class supports **Seedance 2.0** multi-shot merged storytelling:
+
+1. After importing the script, choose **how shots are grouped**:  
+   - One shot → ~15s clip  
+   - Multiple shots merged → ~15s narrative segment  
+   - Grouping is flexible  
+2. The system gathers @Image / @Video / @Audio references  
+3. Click **“Generate video”**
+
+> S-Class handles first-frame stitching, layered prompts (action + camera + lip-sync), and parameter checks.
+
+---
+
+## 💡 Tips
+
+- **Refine before generating** — second-pass refinement noticeably improves quality  
+- **Prefer merged batch** — faster and more consistent than one-shot-at-a-time  
+- **Everything is tunable** — prompts and first/last frames can be edited manually  
+- **S-Class fits** — multi-shot continuous narrative (short drama, trailer-style cuts, etc.)  
+- **Director fits** — per-shot fine control  
+
+---
+
+> Questions? See [README](../README.md)

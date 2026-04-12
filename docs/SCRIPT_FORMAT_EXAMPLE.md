@@ -1,262 +1,265 @@
-# 📝 剧本导入格式示例
+# 📝 Script import format (example)
 
-> 以下是魔因漫创支持的标准剧本格式，供参考。导入时请按此结构编写剧本。
+> Supported standard format for Moyin Creator. Structure your script like this when importing.
 
-其他语言：**[English](./SCRIPT_FORMAT_EXAMPLE_EN.md)** · **[Tiếng Việt](./SCRIPT_FORMAT_EXAMPLE_VI.md)**
+**Important — parser tokens:** The importer expects **Chinese structural keywords** (e.g. `大纲：`, `人物小传：`, episode/scene headers with `日`/`夜`/`内`/`外`, `人物：`, `△`, `【字幕：…】`). Keep those markers exactly as below; you may write **titles, dialogue, and stage directions in English** (or mixed languages) after each marker.
 
 ---
 
-## 格式说明
+## Format legend
 
 ```
-标题        →  《剧名》
-大纲        →  一段话概括核心故事
-人物小传    →  角色名（年龄）：身份，性格特征
-集标题      →  第X集：标题
-场景头      →  编号 + 日/夜 + 内/外 + 地点
-出场人物    →  人物：角色A、角色B
-舞台指示    →  △ 开头的动作/环境描写
-对白        →  角色名：台词内容
-表演提示    →  （括号内的语气/动作提示）
-字幕/转场   →  【字幕：时间/地点信息】
+Title       →  《Title》
+Outline     →  One paragraph summarizing the story
+Bios        →  Name (age): role, personality
+Episode     →  第X集：title   (Chinese episode label)
+Scene head  →  Episode-scene + 日/夜 + 内/外 + location
+Cast        →  人物：Role A、Role B
+Stage dir.  →  Lines starting with △ (action / environment)
+Dialogue    →  Name：line
+Parenthet.  →  （tone / action hints）
+Subtitle    →  【字幕：time or place】
 ```
 
 ---
 
-## 完整示例：《哥哥》第一集
+## Full example — Episode 1 of *Brother*
 
 ---
 
-**《哥哥》**
+**《Brother》**
 
 **大纲：**
-一个因童年自卑而逃离小镇的青年，在都市创业失败后，意外发现儿时痴迷的火箭模型竟藏有改变电车能源格局的秘密，他必须克服心魔，在资本围剿与技术封锁中，用一场史无前例的「火箭电车」实验，向世界证明「废柴」也能封神。
+A young man who fled his small town out of childhood insecurity returns after his startup fails in the city—only to discover the rocket model he once obsessed over holds a secret that could reshape tram power. To prove a “loser” can still win, he must face his demons while capital and tech blockades close in, staging an unprecedented “rocket-tram” experiment.
 
 **人物小传：**
-林星野（28）：创业失败者/火箭电车技术发现者，自卑敏感，执着坚韧
-陆天擎（45）：天擎能源集团CEO，精明冷酷，掌控欲强
-苏晓（27）：顶尖机械工程师，林星野的合伙人，理性务实，外冷内热
-老陈（65）：小镇火箭模型店老板，林星野的启蒙者，豁达睿智，深藏不露
+Lin Xingye (28): failed founder / discoverer of rocket-tram tech—insecure, stubborn, resilient  
+Lu Tianqing (45): CEO of Tianqing Energy—cold, controlling  
+Su Xiao (27): top mechanical engineer, Lin’s partner—rational, cool outside, warm inside  
+Lao Chen (65): owner of the town rocket-model shop—Lin’s mentor, wise, understated  
+Cousin: voice on the phone—urgent family news  
 
 ---
 
-**第一集：陨落与归途**
+**第一集：Fall and return**
 
 ---
 
-**1-1 日 内 新沪市**
-人物：林星野、苏晓
+**1-1 日 内 Xinhu City**
+人物：Lin Xingye、Su Xiao
 
-△林星野把最后一份文件塞进碎纸机。机器发出干涩的咀嚼声。
+△Lin feeds the last folder into the shredder. The machine makes a dry, chewing sound.
 
-苏晓：（站在门口）工商的人下午来封门。
+Su Xiao：（in the doorway）The business bureau seals us this afternoon.
 
-林星野没回头。他盯着碎纸机出口吐出的白色条状物，像一地扯烂的绷带。
+Lin doesn’t turn. He watches white strips fall from the shredder like torn bandages.
 
-△他弯腰，从桌底拖出一个空纸箱。把笔筒、几本旧笔记本、一个掉漆的保温杯扔进去。动作很重。
+△He bends, drags out an empty box from under the desk. Pens, old notebooks, a chipped thermos—thrown in hard.
 
-苏晓：陆总那边……
+Su Xiao：Lu’s side…
 
-林星野：说。
+Lin Xingye：Say it.
 
-苏晓：他要见你。今晚八点，凯悦顶层。
+Su Xiao：He wants to see you. Eight tonight, Hyatt top floor.
 
-林星野手停了。保温杯在纸箱底滚了半圈，哐当一声撞上箱壁。他盯着杯身上"星驰五周年"那几个褪色的烫金字。
+Lin’s hand stops. The thermos rolls in the box, clunks against cardboard. He stares at the faded gold “Xingchi Fifth Anniversary” on it.
 
-林星野：看我笑话？
+Lin Xingye：Here to laugh at me?
 
-苏晓：（走进来，把一张报表放在空荡荡的桌面上）数据不会说谎。清算报告出来了，负债比我们预估的还多百分之三十七点六。
+Su Xiao：（steps in, lays a report on the empty desk）Numbers don’t lie. The liquidation is worse than we thought—thirty-seven point six percent.
 
-△她手指点在某个数字上，指甲修剪得很干净。林星野没看报表，他看着窗外楼下，搬家公司的货车正把"星驰能源"的铜字招牌吊下来。
+△Her nail taps a figure. Lin doesn’t look at the sheet—he looks out the window where movers hoist the “Xingchi Energy” brass sign off the building.
 
-招牌在半空晃悠，像片落叶。
+The sign sways midair like a leaf.
 
-林星野：这次……
+Lin Xingye：This time…
 
-他嗓子发紧，咳了一声。
+His throat tightens; he coughs.
 
-林星野：我不会再逃了。
+Lin Xingye：I won’t run.
 
-△他抱起纸箱。箱子很轻，里面东西哗啦作响。走到门口时，苏晓侧身让开。她的目光落在他磨破的衬衫袖口上。
+△He lifts the box—light, things rattling. At the door Su steps aside. Her eyes fall on his frayed cuff.
 
-苏晓：陆天擎不是要羞辱你。（停顿）他有新项目想让你看。但条件……
+Su Xiao：Lu isn’t here to humiliate you.（pause）He has a new project. But the terms…
 
-林星野：（打断）知道了。
+Lin Xingye：（cuts in）Got it.
 
-△他抱着箱子走进电梯。金属门合拢前，最后一眼看见的是自己办公室——百叶窗歪斜地垂着，地上散落着几页没来得及碎的纸。
+△He walks into the elevator. Before the doors close, his last glimpse is the office—blinds crooked, pages on the floor never shredded.
 
-电梯下行。
+The elevator drops.
 
-失重感让他胃里一空。
-
----
-
-**1-2 日 内 新沪市**
-人物：林星野、陆天擎、苏晓（旁观）
-
-【字幕：同日 夜】
-
-△林星野推开会议室玻璃门。
-△陆天擎靠在真皮转椅里，指尖转着万宝龙钢笔。苏晓站在投影仪旁，低头翻文件。
-
-陆天擎：账清了？
-
-林星野：陆总，再给三个月——
-
-陆天擎：（钢笔敲桌）咚、咚、咚。听见没？倒计时。
-
-△林星野指甲掐进掌心。
-
-陆天擎：你那个破实验室，烧了我八百万。知道八百万什么概念吗？
-
-林星野：技术突破就在眼前——
-
-陆天擎：眼前？（笑）你眼前只有讨债的。
-
-△苏晓把报表推过来。纸张边缘割手。
-
-陆天擎：小镇来的吧？读书厉害，做题冠军。（身子前倾）可生意场不考卷面分。
-
-林星野：这次……
-
-陆天擎：这次什么？不会再逃了？（靠回椅背）你连逃的资格都没有。
-
-△空调冷风灌进衬衫领口。
-
-陆天擎：你那套储能理论，三流期刊都发不了。知道为什么吗？
-
-△林星野喉结动了动。
-
-陆天擎：（对苏晓）告诉他。
-
-苏晓：（轻声）同行评审说……理论基础存在根本缺陷。
-
-△会议室死寂。投影仪风扇嗡嗡响。
-
-陆天擎：规则，由赢家书写。（站起）而你，连参赛证都是借的。
-
-林星野：我会赔——
-
-陆天擎：拿什么赔？你老家那栋瓦房？（抽出担保协议）看清楚。个人连带责任。
-
-△纸页哗啦抖开。签名处红得刺眼。
-
-陆天擎：给你三天搬出公寓。车钥匙放前台。（走向门口）对了——
-
-△他停在门边，没回头。
-
-陆天擎：别再跟我提理想。你那不叫理想。（拉开门）叫妄想。
-
-△玻璃门缓缓合拢。倒影里林星野站着没动。
-
-【字幕：新沪市 · 星驰能源 破产清算日】
+Weightlessness hollows his stomach.
 
 ---
 
-**1-3 夜 外 新沪市**
-人物：林星野
+**1-2 日 内 Xinhu City**
+人物：Lin Xingye、Lu Tianqing、Su Xiao（observer）
 
-△林星野把手机揣进兜，走进雨里。雨水顺着他的头发往下滴，在路灯底下拉成细密的银线。
+【字幕：Same day, night】
 
-△他踢开脚边的易拉罐。铝罐滚进水坑，转了两圈。
+△Lin pushes the glass door of the conference room.
+△Lu leans in a leather chair, spinning a Montblanc. Su stands by the projector, flipping papers.
 
-林星野：操。
+Lu Tianqing：Books closed?
 
-△地铁口的风卷着湿气扑过来。他摸烟盒，掏出来是空的。纸盒被他捏成一团，扔进垃圾桶。
+Lin Xingye：Mr Lu—three more months—
 
-△站台灯箱的光打在他脸上。广告里的模特举着新款手机笑，牙白得晃眼。
+Lu Tianqing：（pen on table）Tick. Tick. Tick. Hear that? Countdown.
 
-林星野：（低声）这次……
+△Lin’s nails dig into his palms.
 
-△话没说完。手机震了。
+Lu Tianqing：Your lab burned eight million of mine. Know what eight million means?
 
-△他盯着来电显示看了三秒才接。
+Lin Xingye：The breakthrough is right there—
 
-林星野：喂？
+Lu Tianqing：There?（laughs）All you see is collectors.
 
-△听筒里传来堂弟急促的声音。
+△Su slides the report over. Paper cuts.
 
-堂弟：（电话音）哥！爷不行了！医院让……让赶紧回来！
+Lu Tianqing：From some small town? Good at tests.（leans in）Business doesn’t grade exams.
 
-△地铁进站的风把他湿透的衣角掀起来。
+Lin Xingye：This time—
 
-林星野：我马上回。
+Lu Tianqing：This time what? Won’t run again?（leans back）You don’t even get to run.
 
-△电话挂了。他把手机攥得太紧，指节都白了。
+△Cold AC crawls down his collar.
 
-△列车门开了又关。他没上去。
+Lu Tianqing：Your storage theory—third-tier journals won’t touch it. Know why?
 
-△雨水顺着站台边往下滴，在铁轨上砸出一个个小坑。远处高楼的光在雨里糊成一片，像化了的糖浆。
+△Lin’s Adam’s apple moves.
 
-林星野：（自言自语）不会逃了……
+Lu Tianqing：（to Su）Tell him.
 
-△他转身往出口走。鞋底踩过水洼，溅起的水打湿了裤脚。
+Su Xiao：（quiet）Peer review says…the theoretical basis is fundamentally flawed.
 
-△街角便利店还亮着灯。收银员正低头刷手机，屏幕的蓝光映在玻璃上。
+△The room goes dead. Only the projector fan hums.
 
-△林星野摸了摸口袋里的车票——昨天买的返程票，原本打算下周去邻市找投资人翻盘。
+Lu Tianqing：Rules are written by winners.（stands）You’re borrowing a ticket to the game.
 
-△他把票撕了。纸屑混着雨水流进下水道缝里。
+Lin Xingye：I’ll pay—
 
-【字幕：三小时后】
+Lu Tianqing：With what? Your parents’ tile house?（pulls guarantee）Read. Personal joint liability.
 
-△长途汽车站候车厅。塑料椅空了大半。
+△Pages snap open. Red signatures sting.
 
-△林星野坐在角落，盯着滚动屏上的班次信息。绿色光标一跳一跳地往前挪。
+Lu Tianqing：Three days to leave the apartment. Keys at reception.（at the door）Oh—
 
-广播：（电子音）前往青塘镇的旅客请到3号检票口……
+△He stops, doesn’t look back.
 
-△他拎起脚边的背包——里面只有两件换洗衣服和一台旧笔记本。
+Lu Tianqing：Don’t say “dream” to me again. That’s not a dream.（opens door）Delusion.
 
-林星野：（对着空气）这次不一样。
+△The glass door closes. In the reflection Lin stands still.
 
-△检票口的闸机嘀了一声。他把票塞进去的时候手抖了一下。
-
-△夜班车发动时雨还没停。车窗上水痕一道道交错着，把城市的灯火割成破碎的光斑。
-
-△他靠窗坐下，额头抵着冰凉的玻璃。
+【字幕：Xinhu City · Xingchi Energy liquidation day】
 
 ---
 
-**1-4 夜 内 高速列车车厢**
-人物：林星野
+**1-3 夜 外 Xinhu City**
+人物：Lin Xingye
 
-△林星野把脸贴在冰凉的车窗上。
-△窗外，新沪市的霓虹像泼翻的颜料桶，把整片天空染成不真实的紫红色。"瞬充联盟"的巨型全息广告牌立在每栋摩天楼顶，蓝色的闪电标志刺得他眼睛发酸。
+△Lin pockets his phone and walks into rain. Water runs down his hair, silver threads under the streetlight.
 
-林星野：（低声）这次……
+△He kicks a can. Aluminum rolls into a puddle, spins twice.
 
-△他喉结动了动，没说完。手指抠进破旧帆布包的带子缝里。
-△车厢广播响起甜腻的女声，报出下一站名——青屿镇。声音在空荡荡的二等座车厢里撞了几下，碎了。
-△前排小孩踢椅背，咚、咚、咚。母亲压着嗓子骂，别闹了。
-△林星野从包里摸出半瓶水，拧开盖时洒了几滴在裤子上。深色水渍在磨白的牛仔裤上慢慢洇开。他盯着那摊污迹看了很久。
+Lin Xingye：Damn.
 
-林星野：不会了。
+△Wind at the subway mouth hits wet. He reaches for cigarettes—empty box. Crumples it, tosses it in the bin.
 
-△列车钻进隧道。
-△车窗瞬间变成一面模糊的镜子，映出一张胡子拉碴、眼窝深陷的脸。镜子里的人和他对视了三秒，然后被隧道墙壁上飞掠而过的蓝色流光广告撕碎——"瞬充联盟，为您的未来充满可能"。光带快得像抽过来的鞭子。
-△他猛地闭眼。
-△再睁开时，窗外已是沉甸甸的、墨汁般的田野。远处零星灯火像被随手掐灭的烟头。城市的喧嚣和光污染被甩在了身后那片逐渐收缩的光晕里。
-△手机屏幕亮了一下，是银行催缴短信的数字余额：-187,430.59。
-△他把手机反扣在小桌板上，声音有点响。邻座打盹的男人惊醒了片刻，嘟囔着换了个姿势。
+△Platform light on his face. A model on a billboard smiles with blinding teeth.
 
-林星野：（对着黑掉的屏幕）这次……我不会再逃了。
+Lin Xingye：（low）This time…
 
-△列车减速进站的摩擦声尖利地刮着耳膜。
-△他抓起包起身，帆布包带子"刺啦"一声裂开更长的口子。
+△He doesn’t finish. The phone buzzes.
 
-【字幕：青屿镇 · 300公里外】
+△He stares at the caller ID three seconds before answering.
+
+Lin Xingye：Hello?
+
+△Cousin’s voice, urgent on the line.
+
+Cousin：（phone）Bro! Grandpa’s bad! Hospital says—says come now!
+
+△Subway wind lifts his soaked hem.
+
+Lin Xingye：I’m on my way.
+
+△Call ends. He grips the phone; knuckles white.
+
+△Train doors open and close. He doesn’t board.
+
+△Rain drips off the platform edge, pits the rails. Tower lights blur in the rain like melted syrup.
+
+Lin Xingye：（to himself）Won’t run…
+
+△He turns toward the exit. Soles splash the cuffs.
+
+△The corner store still glows. The clerk scrolls his phone; blue light on the glass.
+
+△Lin touches the ticket in his pocket—bought yesterday for next week’s investor trip to the next city.
+
+△He tears it. Scraps wash into the grate with rain.
+
+【字幕：Three hours later】
+
+△Long-distance bus hall. Plastic seats half empty.
+
+△Lin sits in a corner, watching the departure board. Green cursor jumps forward.
+
+Broadcast：（PA）Passengers to Qingtang Town, gate 3…
+
+△He lifts his backpack—two changes of clothes, one old laptop.
+
+Lin Xingye：（to the air）Different this time.
+
+△The gate beeps. His hand shakes sliding the ticket in.
+
+△The night bus starts; rain still falls. Water streaks the window, cuts city lights into shards.
+
+△He rests his forehead on the cold glass.
 
 ---
 
-## 格式要点总结
+**1-4 夜 内 High-speed train car**
+人物：Lin Xingye
 
-| 元素 | 格式 | 示例 |
-|------|------|------|
-| 场景编号 | `集-场 日/夜 内/外 地点` | `1-3 夜 外 新沪市` |
-| 出场人物 | `人物：角色A、角色B` | `人物：林星野、苏晓` |
-| 舞台指示 | 以 `△` 开头 | `△林星野推开玻璃门。` |
-| 对白 | `角色名：台词` | `林星野：我不会再逃了。` |
-| 表演提示 | `（括号说明）` | `苏晓：（轻声）理论基础存在缺陷。` |
-| 字幕/转场 | `【字幕：内容】` | `【字幕：三小时后】` |
-| 人物小传 | `角色名（年龄）：身份，性格` | `林星野（28）：创业失败者，自卑敏感` |
+△Lin presses his cheek to the cold window.
+△Outside, Xinhu’s neon spills like knocked-over paint; the sky turns unreal purple-red. “Flash-Charge Alliance” holograms tower on every roof—blue lightning logos sting his eyes.
+
+Lin Xingye：（low）This time…
+
+△His throat stops. Fingers hook into frayed canvas straps.
+△The PA plays a sweet voice—next stop Qingyu Town. It bounces in the empty second-class car and breaks.
+△A kid kicks the seat—thump, thump. Mother shushes.
+△Lin pulls half a bottle of water; opening it splashes his jeans. Dark stains bloom on pale denim. He stares a long time.
+
+Lin Xingye：Not anymore.
+
+△The train enters a tunnel.
+△The window becomes a smeared mirror—a stubbled, hollow-eyed face. It holds his gaze three seconds, then shatters past blue ad streaks—“Flash-Charge Alliance: power your future.” Fast as a whip.
+△He shuts his eyes hard.
+△When he opens them, black fields roll past; scattered lights like crushed cigarette ends. City noise fades behind a shrinking glow.
+△The phone flashes—bank text: balance −187,430.59.
+△He flips it face-down on the tray. Loud. The dozing neighbor stirs, grumbles, shifts.
+
+Lin Xingye：（to the black screen）This time…I won’t run.
+
+△Brakes screech into the station.
+△He grabs his bag—the canvas strap rips longer.
+
+【字幕：Qingyu Town · 300 km out】
+
+---
+
+## Format checklist
+
+| Element | Pattern | Example |
+|--------|---------|---------|
+| Scene slug | `episode-scene` + `日\|夜` + `内\|外` + location | `1-3 夜 外 Xinhu City` |
+| Cast | `人物：A、B` | `人物：Lin Xingye、Su Xiao` |
+| Stage direction | starts with `△` | `△Lin walks into the rain.` |
+| Dialogue | `Name：line` | `Lin Xingye：I won’t run.` |
+| Parenthetical | `（hint）` | `Su Xiao：（quiet）…` |
+| Subtitle / transition | `【字幕：…】` | `【字幕：Three hours later】` |
+| Character bio | `Name（age）：role, traits` | `Lin Xingye（28）：founder, insecure` |
+
+---
