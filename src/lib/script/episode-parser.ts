@@ -1061,7 +1061,7 @@ export function convertToScriptData(
     title: background.title,
     genre: detectGenre(background.outline, background.characterBios),
     logline: extractLogline(background.outline),
-    language: '中文',
+    language: 'English',
     characters,
     episodes,
     scenes,

@@ -328,7 +328,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
   const promptLanguage = useScriptStore(state => {
     const pid = state.activeProjectId;
     return pid ? state.projects[pid]?.promptLanguage : undefined;
-  }) || 'zh';
+  }) || 'en';
 
   // Read from project data (with defaults)
   const splitScenes = projectData?.splitScenes || [];

@@ -517,7 +517,7 @@ export function ScriptInput({
             <div className="space-y-1">
               <Label className="text-xs">提示词语言</Label>
               <Select
-                value={promptLanguage || "zh"}
+                value={promptLanguage || "en"}
                 onValueChange={(v) => onPromptLanguageChange?.(v as PromptLanguage)}
                 disabled={parseStatus === "parsing"}
               >
@@ -648,7 +648,7 @@ export function ScriptInput({
             <div className="space-y-1">
               <Label className="text-xs">提示词语言</Label>
               <Select
-                value={promptLanguage || "zh"}
+                value={promptLanguage || "en"}
                 onValueChange={(v) => onPromptLanguageChange?.(v as PromptLanguage)}
                 disabled={parseStatus === "parsing"}
               >

@@ -121,7 +121,7 @@ export function GenerationPanel({ selectedCharacter, onCharacterCreated }: Gener
   const [identityAnchors, setIdentityAnchors] = useState<CharacterIdentityAnchors | undefined>();
   const [charNegativePrompt, setCharNegativePrompt] = useState<CharacterNegativePrompt | undefined>();
   // === 提示词语言偏好 ===
-  const [promptLanguage, setPromptLanguage] = useState<PromptLanguage>('zh');
+  const [promptLanguage, setPromptLanguage] = useState<PromptLanguage>('en');
   // === 年代信息（从剧本元数据传递）===
   const [storyYear, setStoryYear] = useState<number | undefined>();
   const [era, setEra] = useState<string | undefined>();
@@ -378,7 +378,7 @@ export function GenerationPanel({ selectedCharacter, onCharacterCreated }: Gener
     try {
       // 构建提示词：根据语言偏好选择提示词 + 6层身份锚点 + 参考图优先级逻辑 + 年代信息
       // 获取实时的语言偏好（优先使用 pending 传来的，其次从 scriptProject 读取）
-      const effectiveLang = promptLanguage || scriptProject?.promptLanguage || 'zh';
+      const effectiveLang = promptLanguage || scriptProject?.promptLanguage || 'en';
       const prompt = buildCharacterSheetPrompt(
         description, 
         name, 
@@ -855,7 +855,7 @@ export function GenerationPanel({ selectedCharacter, onCharacterCreated }: Gener
                   
                   {/* 专业视觉提示词：根据语言偏好只展示一种，编辑后直接用于生成 */}
                   {(() => {
-                    const effectiveLang = promptLanguage || scriptProject?.promptLanguage || 'zh';
+                    const effectiveLang = promptLanguage || scriptProject?.promptLanguage || 'en';
                     const showZh = effectiveLang === 'zh' || effectiveLang === 'zh+en';
                     const activePrompt = showZh ? visualPromptZh : visualPromptEn;
                     const setActivePrompt = showZh ? setVisualPromptZh : setVisualPromptEn;
@@ -1264,7 +1264,7 @@ function buildCharacterSheetPrompt(
   const isRealistic = stylePreset?.category === 'real';
   
   // 根据语言偏好选择主视觉提示词
-  const lang = promptLanguage || 'zh';
+  const lang = promptLanguage || 'en';
 
   // 构建年代服装提示词（根据语言偏好）
   let eraPrompt = '';

@@ -276,7 +276,7 @@ export function ScriptView() {
 
   // Local state fallbacks
   const rawScript = scriptProject?.rawScript || "";
-  const language = scriptProject?.language || "中文";
+  const language = scriptProject?.language || "English";
   const targetDuration = scriptProject?.targetDuration || "60s";
   const styleId = scriptProject?.styleId || DEFAULT_STYLE_ID;
   const sceneCount = scriptProject?.sceneCount;
@@ -285,7 +285,7 @@ export function ScriptView() {
   const parseStatus = scriptProject?.parseStatus || "idle";
   const parseError = scriptProject?.parseError;
   const shots = scriptProject?.shots || [];
-  const promptLanguage = scriptProject?.promptLanguage || 'zh';
+  const promptLanguage = scriptProject?.promptLanguage || 'en';
 
   // 当前集作用域：从 activeEpisodeIndex 映射到 episodeId
   const activeEpisodeId = activeEpisodeIndex != null
@@ -1601,7 +1601,7 @@ export function ScriptView() {
         notes: character.notes,
         styleId,
         // === 提示词语言偏好 ===
-        promptLanguage: scriptProject?.promptLanguage || 'zh',
+        promptLanguage: scriptProject?.promptLanguage || 'en',
         // === 专业角色设计字段（世界级大师生成）===
         visualPromptEn: character.visualPromptEn,
         visualPromptZh: character.visualPromptZh,
@@ -1690,7 +1690,7 @@ export function ScriptView() {
           sourceEpisodeIndex: activeEpisodeIndex ?? undefined,
           sourceEpisodeId: activeEpisodeId,
           // === 提示词语言偏好 ===
-          promptLanguage: scriptProject?.promptLanguage || 'zh',
+          promptLanguage: scriptProject?.promptLanguage || 'en',
         });
 
         const viewpointCount = scene.viewpoints!.length;
@@ -1722,7 +1722,7 @@ export function ScriptView() {
           sourceEpisodeIndex: activeEpisodeIndex ?? undefined,
           sourceEpisodeId: activeEpisodeId,
           // === 提示词语言偏好 ===
-          promptLanguage: scriptProject?.promptLanguage || 'zh',
+          promptLanguage: scriptProject?.promptLanguage || 'en',
         });
 
         toast.success(

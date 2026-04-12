@@ -64,7 +64,7 @@ export function populateSeriesMetaFromImport(
     colorPalette: undefined,
 
     // 制作设定 — promptLanguage 从用户选择直接映射
-    language: scriptData.language || '中文',
+    language: scriptData.language || 'English',
     promptLanguage: importSettings?.promptLanguage,
   };
 

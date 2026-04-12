@@ -150,7 +150,7 @@ export function PropertyPanel({
   const [copiedShotPrompts, setCopiedShotPrompts] = useState(false);
   const [copiedScene, setCopiedScene] = useState(false);
   const scriptProject = useActiveScriptProject();
-  const promptLanguage = scriptProject?.promptLanguage || 'zh';
+  const promptLanguage = scriptProject?.promptLanguage || 'en';
 
   // 复制场景数据
   const handleCopySceneData = async () => {

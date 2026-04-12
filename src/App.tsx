@@ -2,12 +2,14 @@
 // Licensed under AGPL-3.0-or-later. See LICENSE for details.
 // Commercial licensing available. See COMMERCIAL_LICENSE.md.
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Layout } from "@/components/Layout";
 import { Toaster } from "@/components/ui/sonner";
 import { UpdateDialog } from "@/components/UpdateDialog";
 import { useThemeStore } from "@/stores/theme-store";
 import { useAPIConfigStore } from "@/stores/api-config-store";
 import { useAppSettingsStore } from "@/stores/app-settings-store";
+import { setAppLanguage } from "@/i18n/i18n";
 import { parseApiKeys } from "@/lib/api-key-manager";
 import { Loader2 } from "lucide-react";
 import { migrateToProjectStorage, recoverFromLegacy } from "@/lib/storage-migration";
@@ -16,7 +18,9 @@ import type { AvailableUpdateInfo } from "@/types/update";
 let hasTriggeredStartupUpdateCheck = false;
 
 function App() {
+  const { t } = useTranslation();
   const { theme } = useThemeStore();
+  const locale = useAppSettingsStore((s) => s.locale);
   const { updateSettings, setUpdateSettings } = useAppSettingsStore();
   const [isMigrating, setIsMigrating] = useState(true);
   const [startupUpdate, setStartupUpdate] = useState<AvailableUpdateInfo | null>(null);
@@ -81,6 +85,12 @@ function App() {
   }, [theme]);
 
   useEffect(() => {
+    if (isMigrating) return;
+    document.documentElement.lang = locale;
+    setAppLanguage(locale);
+  }, [isMigrating, locale]);
+
+  useEffect(() => {
     if (
       isMigrating ||
       hasTriggeredStartupUpdateCheck ||
@@ -123,7 +133,7 @@ function App() {
       <div className="h-screen w-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-muted-foreground">正在初始化...</p>
+          <p className="text-muted-foreground">{t("app.initializing")}</p>
         </div>
       </div>
     );

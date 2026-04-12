@@ -44,7 +44,11 @@ nami-reference/
 docs/*
 !docs/images/
 !docs/WORKFLOW_GUIDE.md
+!docs/WORKFLOW_GUIDE_EN.md
+!docs/WORKFLOW_GUIDE_VI.md
 !docs/SCRIPT_FORMAT_EXAMPLE.md
+!docs/SCRIPT_FORMAT_EXAMPLE_EN.md
+!docs/SCRIPT_FORMAT_EXAMPLE_VI.md
 
 # Next.js cache (not used)
 .next/

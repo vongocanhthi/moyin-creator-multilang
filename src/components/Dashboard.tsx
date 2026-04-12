@@ -8,7 +8,8 @@
  * Features: create, open, rename, duplicate, batch select & delete
  */
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useProjectStore } from "@/stores/project-store";
 import { useMediaPanelStore } from "@/stores/media-panel-store";
 import { switchProject } from "@/lib/project-switcher";
@@ -47,8 +48,15 @@ import { toast } from "sonner";
 import type { Project } from "@/stores/project-store";
 
 export function Dashboard() {
+  const { t, i18n } = useTranslation();
   const { projects, createProject, deleteProject, renameProject } = useProjectStore();
   const { setActiveTab } = useMediaPanelStore();
+
+  const dateLocale = useMemo(() => {
+    if (i18n.language === "zh") return "zh-CN";
+    if (i18n.language === "vi") return "vi-VN";
+    return "en-US";
+  }, [i18n.language]);
   
   const [showNewProject, setShowNewProject] = useState(false);
   const [newProjectName, setNewProjectName] = useState("");
@@ -117,11 +125,11 @@ export function Dashboard() {
 
   const handleBatchDelete = useCallback(() => {
     selectedIds.forEach((id) => deleteProject(id));
-    toast.success(`已删除 ${selectedIds.size} 个项目`);
+    toast.success(t("dashboard.toast.batchDeleted", { count: selectedIds.size }));
     setSelectedIds(new Set());
     setBatchDeleteConfirm(false);
     setSelectionMode(false);
-  }, [selectedIds, deleteProject]);
+  }, [selectedIds, deleteProject, t]);
 
   // ==================== Rename ====================
 
@@ -136,8 +144,8 @@ export function Dashboard() {
     renameProject(renameTarget.id, renameValue.trim());
     setRenameDialogOpen(false);
     setRenameTarget(null);
-    toast.success("项目已重命名");
-  }, [renameTarget, renameValue, renameProject]);
+    toast.success(t("dashboard.toast.renamed"));
+  }, [renameTarget, renameValue, renameProject, t]);
 
   // ==================== Duplicate ====================
 
@@ -150,7 +158,7 @@ export function Dashboard() {
     try {
       const fs = window.fileStorage;
       if (!fs) {
-        toast.warning('文件存储不可用，仅复制了项目名称');
+        toast.warning(t("dashboard.toast.duplicateWarn"));
         setDuplicatingId(null);
         return;
       }
@@ -238,33 +246,35 @@ export function Dashboard() {
       }));
 
       if (copiedCount > 0) {
-        toast.success(`已复制项目「${source.name}」(${copiedCount} 个数据文件)`);
+        toast.success(
+          t("dashboard.toast.duplicateOk", { name: source.name, count: copiedCount }),
+        );
       } else {
-        toast.warning('项目数据文件为空，仅复制了项目名称');
+        toast.warning(t("dashboard.toast.duplicateEmpty"));
       }
 
       // STEP 5: Reset activeProjectId so the next project open triggers a full switchProject.
       useProjectStore.getState().setActiveProject(null);
     } catch (err) {
       console.error('[Duplicate] Failed:', err);
-      toast.error(`复制项目数据失败: ${(err as Error).message}`);
+      toast.error(t("dashboard.toast.duplicateFail", { message: (err as Error).message }));
     } finally {
       setDuplicatingId(null);
     }
-  }, [projects]);
+  }, [projects, t]);
 
   // ==================== Helpers ====================
 
   const formatDate = (timestamp: number) => {
     const now = Date.now();
     const diff = now - timestamp;
-    
-    if (diff < 60000) return "刚刚";
-    if (diff < 3600000) return `${Math.floor(diff / 60000)} 分钟前`;
-    if (diff < 86400000) return `${Math.floor(diff / 3600000)} 小时前`;
-    if (diff < 604800000) return `${Math.floor(diff / 86400000)} 天前`;
-    
-    return new Date(timestamp).toLocaleDateString("zh-CN", {
+
+    if (diff < 60000) return t("dashboard.time.justNow");
+    if (diff < 3600000) return t("dashboard.time.minutesAgo", { n: Math.floor(diff / 60000) });
+    if (diff < 86400000) return t("dashboard.time.hoursAgo", { n: Math.floor(diff / 3600000) });
+    if (diff < 604800000) return t("dashboard.time.daysAgo", { n: Math.floor(diff / 86400000) });
+
+    return new Date(timestamp).toLocaleDateString(dateLocale, {
       year: "numeric",
       month: "short",
       day: "numeric",
@@ -282,8 +292,8 @@ export function Dashboard() {
             <Aperture className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-foreground tracking-wide">魔因漫创</h1>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Moyin Creator Studio</p>
+            <h1 className="text-lg font-bold text-foreground tracking-wide">{t("dashboard.brandTitle")}</h1>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-widest">{t("dashboard.brandSubtitle")}</p>
           </div>
         </div>
         
@@ -295,7 +305,7 @@ export function Dashboard() {
               onClick={toggleSelectionMode}
             >
               <CheckSquare className="w-4 h-4 mr-1.5" />
-              {selectionMode ? "退出选择" : "管理"}
+              {selectionMode ? t("dashboard.exitSelection") : t("dashboard.manage")}
             </Button>
           )}
           <Button
@@ -303,7 +313,7 @@ export function Dashboard() {
             className="bg-primary text-primary-foreground hover:bg-primary/90 font-medium"
           >
             <Plus className="w-4 h-4 mr-2" />
-            新建项目
+            {t("dashboard.newProject")}
           </Button>
         </div>
       </div>
@@ -314,11 +324,13 @@ export function Dashboard() {
           {/* Section Header */}
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-xl font-bold text-foreground mb-1">我的项目</h2>
+              <h2 className="text-xl font-bold text-foreground mb-1">{t("dashboard.myProjects")}</h2>
               <p className="text-sm text-muted-foreground">
-                共 {projects.length} 个项目
+                {t("dashboard.projectCount", { count: projects.length })}
                 {selectionMode && selectedIds.size > 0 && (
-                  <span className="text-primary ml-2">· 已选 {selectedIds.size} 个</span>
+                  <span className="text-primary ml-2">
+                    {t("dashboard.selectedCount", { count: selectedIds.size })}
+                  </span>
                 )}
               </p>
             </div>
@@ -327,7 +339,7 @@ export function Dashboard() {
             {selectionMode && (
               <div className="flex items-center gap-2">
                 <Button variant="outline" size="sm" onClick={handleSelectAll}>
-                  {allSelected ? "取消全选" : "全选"}
+                  {allSelected ? t("dashboard.deselectAll") : t("dashboard.selectAll")}
                 </Button>
                 <Button
                   variant="destructive"
@@ -336,7 +348,7 @@ export function Dashboard() {
                   onClick={() => setBatchDeleteConfirm(true)}
                 >
                   <Trash2 className="w-3.5 h-3.5 mr-1.5" />
-                  删除选中 ({selectedIds.size})
+                  {t("dashboard.deleteSelected", { count: selectedIds.size })}
                 </Button>
               </div>
             )}
@@ -347,7 +359,7 @@ export function Dashboard() {
             <div className="mb-6 p-4 bg-muted/50 border border-border rounded-lg">
               <div className="flex items-center gap-3">
                 <Input
-                  placeholder="输入项目名称..."
+                  placeholder={t("dashboard.projectNamePlaceholder")}
                   value={newProjectName}
                   onChange={(e) => setNewProjectName(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleCreateProject()}
@@ -355,7 +367,7 @@ export function Dashboard() {
                   autoFocus
                 />
                 <Button onClick={handleCreateProject} disabled={!newProjectName.trim()}>
-                  创建
+                  {t("dashboard.create")}
                 </Button>
                 <Button
                   variant="ghost"
@@ -443,25 +455,25 @@ export function Dashboard() {
                           <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
                             <DropdownMenuItem onClick={() => openRenameDialog(project.id, project.name)}>
                               <Pencil className="w-4 h-4 mr-2" />
-                              重命名
+                              {t("dashboard.rename")}
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => handleDuplicate(project.id)}
                               disabled={isDuplicating}
                             >
                               <Copy className="w-4 h-4 mr-2" />
-                              复制项目
+                              {t("dashboard.duplicateProject")}
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
                               className="text-destructive focus:text-destructive"
                               onClick={() => {
                                 deleteProject(project.id);
-                                toast.success(`已删除「${project.name}」`);
+                                toast.success(t("dashboard.toast.deleted", { name: project.name }));
                               }}
                             >
                               <Trash2 className="w-4 h-4 mr-2" />
-                              删除
+                              {t("dashboard.delete")}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -476,7 +488,7 @@ export function Dashboard() {
                       <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                         <div className="bg-primary text-primary-foreground px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2">
                           <FolderOpen className="w-4 h-4" />
-                          打开项目
+                          {t("dashboard.openProject")}
                         </div>
                       </div>
                     </>
@@ -490,14 +502,14 @@ export function Dashboard() {
               <div className="col-span-full flex flex-col items-center justify-center py-16 text-center">
                 <Film className="w-16 h-16 text-muted-foreground/30 mb-4" />
                 <h3 className="text-lg font-medium text-muted-foreground mb-2">
-                  还没有项目
+                  {t("dashboard.emptyTitle")}
                 </h3>
                 <p className="text-sm text-muted-foreground/70 mb-6">
-                  创建你的第一个 AI 视频项目
+                  {t("dashboard.emptyDescription")}
                 </p>
                 <Button onClick={() => setShowNewProject(true)}>
                   <Plus className="w-4 h-4 mr-2" />
-                  新建项目
+                  {t("dashboard.newProject")}
                 </Button>
               </div>
             )}
@@ -509,18 +521,18 @@ export function Dashboard() {
       <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>重命名项目</DialogTitle>
+            <DialogTitle>{t("dashboard.renameTitle")}</DialogTitle>
           </DialogHeader>
           <Input
             value={renameValue}
             onChange={(e) => setRenameValue(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleRename()}
-            placeholder="输入新名称..."
+            placeholder={t("dashboard.newNamePlaceholder")}
             autoFocus
           />
           <DialogFooter>
-            <Button variant="outline" onClick={() => setRenameDialogOpen(false)}>取消</Button>
-            <Button onClick={handleRename} disabled={!renameValue.trim()}>确定</Button>
+            <Button variant="outline" onClick={() => setRenameDialogOpen(false)}>{t("dashboard.cancel")}</Button>
+            <Button onClick={handleRename} disabled={!renameValue.trim()}>{t("dashboard.confirm")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -529,15 +541,14 @@ export function Dashboard() {
       <Dialog open={batchDeleteConfirm} onOpenChange={setBatchDeleteConfirm}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>确认批量删除</DialogTitle>
+            <DialogTitle>{t("dashboard.batchDeleteTitle")}</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            即将删除 <span className="text-foreground font-medium">{selectedIds.size}</span> 个项目，
-            此操作不可撤销。确定继续？
+            {t("dashboard.batchDeleteBody", { count: selectedIds.size })}
           </p>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setBatchDeleteConfirm(false)}>取消</Button>
-            <Button variant="destructive" onClick={handleBatchDelete}>确认删除</Button>
+            <Button variant="outline" onClick={() => setBatchDeleteConfirm(false)}>{t("dashboard.cancel")}</Button>
+            <Button variant="destructive" onClick={handleBatchDelete}>{t("dashboard.confirmDelete")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

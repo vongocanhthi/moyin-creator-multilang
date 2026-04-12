@@ -2,6 +2,8 @@
 
 > 以下是魔因漫创支持的标准剧本格式，供参考。导入时请按此结构编写剧本。
 
+其他语言：**[English](./SCRIPT_FORMAT_EXAMPLE_EN.md)** · **[Tiếng Việt](./SCRIPT_FORMAT_EXAMPLE_VI.md)**
+
 ---
 
 ## 格式说明

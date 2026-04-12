@@ -4,6 +4,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { ExternalLink, Download } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -31,23 +32,32 @@ export function UpdateDialog({
   updateInfo,
   onIgnoreVersion,
 }: UpdateDialogProps) {
+  const { t, i18n } = useTranslation();
+
+  const dateLocale = useMemo(() => {
+    const lng = i18n.language?.split("-")[0] ?? "en";
+    if (lng === "zh") return "zh-CN";
+    if (lng === "vi") return "vi-VN";
+    return "en-US";
+  }, [i18n.language]);
+
   const formattedPublishedAt = useMemo(() => {
     if (!updateInfo?.publishedAt) return "";
     const publishedDate = new Date(updateInfo.publishedAt);
     if (Number.isNaN(publishedDate.getTime())) {
       return updateInfo.publishedAt;
     }
-    return publishedDate.toLocaleString("zh-CN");
-  }, [updateInfo?.publishedAt]);
+    return publishedDate.toLocaleString(dateLocale);
+  }, [updateInfo?.publishedAt, dateLocale]);
 
   const handleOpenLink = async (url: string) => {
     if (!window.appUpdater) {
-      toast.error("请在桌面版中使用此功能");
+      toast.error(t("update.desktopOnly"));
       return;
     }
     const result = await window.appUpdater.openExternalLink(url);
     if (!result.success) {
-      toast.error(result.error || "打开下载链接失败");
+      toast.error(result.error || t("update.openLinkFailed"));
       return;
     }
     onOpenChange(false);
@@ -59,9 +69,14 @@ export function UpdateDialog({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="max-w-xl">
         <AlertDialogHeader>
-          <AlertDialogTitle>发现新版本 v{updateInfo.latestVersion}</AlertDialogTitle>
+          <AlertDialogTitle>
+            {t("update.titleNewVersion", { version: updateInfo.latestVersion })}
+          </AlertDialogTitle>
           <AlertDialogDescription>
-            当前版本 v{updateInfo.currentVersion}，可升级到 v{updateInfo.latestVersion}。
+            {t("update.subtitleUpgrade", {
+              current: updateInfo.currentVersion,
+              latest: updateInfo.latestVersion,
+            })}
           </AlertDialogDescription>
         </AlertDialogHeader>
 
@@ -69,10 +84,12 @@ export function UpdateDialog({
           <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-3">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-sm font-medium text-foreground">更新说明</p>
+                <p className="text-sm font-medium text-foreground">
+                  {t("update.releaseNotes")}
+                </p>
                 {formattedPublishedAt && (
                   <p className="text-xs text-muted-foreground mt-1">
-                    发布时间：{formattedPublishedAt}
+                    {t("update.publishedAt", { at: formattedPublishedAt })}
                   </p>
                 )}
               </div>
@@ -81,28 +98,32 @@ export function UpdateDialog({
               </div>
             </div>
             <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-6">
-              {updateInfo.releaseNotes?.trim() || "本次发布未填写更新说明。"}
+              {updateInfo.releaseNotes?.trim() || t("update.noReleaseNotes")}
             </p>
           </div>
 
           <div className="rounded-lg border border-border bg-card p-4 space-y-3">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-sm font-medium text-foreground">下载方式</p>
+                <p className="text-sm font-medium text-foreground">
+                  {t("update.downloadMethod")}
+                </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  可任选 GitHub 或百度网盘下载最新安装包。
+                  {t("update.downloadHint")}
                 </p>
               </div>
               {updateInfo.baiduCode && (
                 <div className="text-xs text-muted-foreground">
-                  提取码：
+                  {t("update.extractCode")}
                   <span className="ml-1 font-mono text-foreground">{updateInfo.baiduCode}</span>
                 </div>
               )}
             </div>
 
             {(!updateInfo.githubUrl && !updateInfo.baiduUrl) && (
-              <p className="text-xs text-destructive">当前版本清单未提供下载链接。</p>
+              <p className="text-xs text-destructive">
+                {t("update.noDownloadLinks")}
+              </p>
             )}
 
             <div className="flex flex-col sm:flex-row gap-2">
@@ -112,7 +133,7 @@ export function UpdateDialog({
                   onClick={() => void handleOpenLink(updateInfo.githubUrl!)}
                 >
                   <ExternalLink className="h-4 w-4 mr-2" />
-                  GitHub 下载
+                  {t("update.githubDownload")}
                 </Button>
               )}
               {updateInfo.baiduUrl && (
@@ -122,7 +143,7 @@ export function UpdateDialog({
                   onClick={() => void handleOpenLink(updateInfo.baiduUrl!)}
                 >
                   <Download className="h-4 w-4 mr-2" />
-                  百度网盘下载
+                  {t("update.baiduDownload")}
                 </Button>
               )}
             </div>
@@ -138,10 +159,10 @@ export function UpdateDialog({
                 onOpenChange(false);
               }}
             >
-              忽略此版本
+              {t("update.ignoreVersion")}
             </Button>
           )}
-          <AlertDialogCancel>稍后</AlertDialogCancel>
+          <AlertDialogCancel>{t("update.later")}</AlertDialogCancel>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

@@ -480,7 +480,7 @@ export async function parseScript(
 
 ${rawScript}
 
-语言：${options.language || '中文'}${sceneCountHint}`;
+语言：${options.language || 'English'}${sceneCountHint}`;
 
   const response = await callChatAPI(PARSE_SYSTEM_PROMPT, userPrompt, options);
   const cleaned = cleanJsonString(response);
@@ -550,7 +550,7 @@ ${rawScript}
       title: parsed.title || '未命名剧本',
       genre: parsed.genre,
       logline: parsed.logline,
-      language: options.language || '中文',
+      language: options.language || 'English',
       characters,
       scenes,
       episodes,
@@ -582,7 +582,7 @@ export async function generateShotList(
     return [];
   }
 
-  const lang = options.language || scriptData.language || '中文';
+  const lang = options.language || scriptData.language || 'English';
   const allShots: Shot[] = [];
   
   // 计算每个场景应该生成的分镜数
@@ -925,7 +925,7 @@ export async function generateScriptFromIdea(
   idea: string,
   options: ScriptGenerationOptions
 ): Promise<string> {
-  const { language = '中文', targetDuration = '60s', sceneCount, shotCount, styleId } = options;
+  const { language = 'English', targetDuration = '60s', sceneCount, shotCount, styleId } = options;
   
   // 根据时长生成参考范围（不是硬限制，是给 AI 的参考）
   const durationSeconds = targetDuration === 'auto' ? 0 : (parseInt(targetDuration) || 60);

@@ -4,6 +4,8 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { fileStorage } from "@/lib/indexed-db-storage";
+import type { AppLocale } from "@/types/locale";
+import { DEFAULT_APP_LOCALE } from "@/types/locale";
 
 export interface ResourceSharingSettings {
   shareCharacters: boolean;
@@ -25,6 +27,8 @@ export interface UpdateSettings {
 }
 
 interface AppSettingsState {
+  /** UI language (i18n) */
+  locale: AppLocale;
   resourceSharing: ResourceSharingSettings;
   storagePaths: StoragePathSettings;
   cacheSettings: CacheSettings;
@@ -32,6 +36,7 @@ interface AppSettingsState {
 }
 
 interface AppSettingsActions {
+  setLocale: (locale: AppLocale) => void;
   setResourceSharing: (settings: Partial<ResourceSharingSettings>) => void;
   setStoragePaths: (paths: Partial<StoragePathSettings>) => void;
   setCacheSettings: (settings: Partial<CacheSettings>) => void;
@@ -39,6 +44,7 @@ interface AppSettingsActions {
 }
 
 const defaultState: AppSettingsState = {
+  locale: DEFAULT_APP_LOCALE,
   resourceSharing: {
     shareCharacters: true,
     shareScenes: true,
@@ -61,6 +67,7 @@ export const useAppSettingsStore = create<AppSettingsState & AppSettingsActions>
   persist(
     (set) => ({
       ...defaultState,
+      setLocale: (locale) => set({ locale }),
       setResourceSharing: (settings) =>
         set((state) => ({
           resourceSharing: { ...state.resourceSharing, ...settings },

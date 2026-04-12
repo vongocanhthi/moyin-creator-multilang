@@ -8,7 +8,8 @@
  * Configure API keys for AI services
  */
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useAPIConfigStore } from "@/stores/api-config-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,6 +33,7 @@ interface APISettingsProps {
 }
 
 export function APISettings({ collapsed = true, onToggleCollapse }: APISettingsProps) {
+  const { t } = useTranslation();
   const { 
     apiKeys, 
     concurrency,
@@ -70,25 +72,28 @@ export function APISettings({ collapsed = true, onToggleCollapse }: APISettingsP
     }
   };
 
-  const providers: Array<{
-    id: ProviderId;
-    name: string;
-    description: string;
-    services: string[];
-  }> = [
-    {
-      id: "memefast",
-      name: "魔因API",
-      description: "全功能 AI 中转，支持对话/图片/视频/图片理解",
-      services: ["对话", "图片", "视频", "图片理解"],
-    },
-    {
-      id: "runninghub",
-      name: "RunningHub",
-      description: "Qwen 视角切换 / 多角度生成",
-      services: ["视角切换", "图生图"],
-    },
-  ];
+  const providers = useMemo(
+    (): Array<{
+      id: ProviderId;
+      name: string;
+      description: string;
+      services: string[];
+    }> => [
+      {
+        id: "memefast",
+        name: t("settings.api.memefastTitle"),
+        description: "全功能 AI 中转，支持对话/图片/视频/图片理解",
+        services: ["对话", "图片", "视频", "图片理解"],
+      },
+      {
+        id: "runninghub",
+        name: t("settings.api.runninghubTitle"),
+        description: "Qwen 视角切换 / 多角度生成",
+        services: ["视角切换", "图生图"],
+      },
+    ],
+    [t],
+  );
 
   if (collapsed) {
     return (

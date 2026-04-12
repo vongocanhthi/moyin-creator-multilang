@@ -1,6 +1,8 @@
 # 完整的安装前帮助可以看这里
 https://kvodb27hf3.feishu.cn/wiki/JjSmwf173iN3fqkjXakcGbvTnEf?from=from_copylink
 
+其他语言：**[English](./WORKFLOW_GUIDE_EN.md)** · **[Tiếng Việt](./WORKFLOW_GUIDE_VI.md)**
+
 # 🎬 魔因漫创 — 基本工作流教程
 
 > 从剧本到成片的完整创作流程指南

@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2025 hotflow2024
+// Copyright (c) 2025 hotflow2024
 // Licensed under AGPL-3.0-or-later. See LICENSE for details.
 // Commercial licensing available. See COMMERCIAL_LICENSE.md.
 import { create } from "zustand";
@@ -153,7 +153,7 @@ const defaultInputDraft: ScriptInputDraft = {
 
 const defaultProjectData = (): ScriptProjectData => ({
   rawScript: "",
-  language: "涓枃",
+  language: "English",
   targetDuration: "60s",
   styleId: "2d_ghibli",
   inputDraft: { ...defaultInputDraft },
@@ -174,7 +174,7 @@ const defaultProjectData = (): ScriptProjectData => ({
   episodeRawScripts: [],
   metadataMarkdown: '',
   metadataGeneratedAt: undefined,
-  promptLanguage: 'zh',
+  promptLanguage: 'en',
   calibrationStrictness: 'normal',
   lastFilteredCharacters: [],
   calibrationState: defaultCalibrationState(),
