@@ -183,6 +183,21 @@ const defaultProjectData = (): ScriptProjectData => ({
 
 const pendingCharacterRecoveryProjectIds = new Set<string>();
 
+/** Legacy: script language was stored as native labels (e.g. "Tiếng Việt"); canonical values are English tokens. */
+function migrateScriptLanguageValue(raw: string): string {
+  const s = raw.trim();
+  switch (s) {
+    case "Tiếng Việt":
+      return "Vietnamese";
+    case "中文":
+      return "Chinese";
+    case "日本語":
+      return "Japanese";
+    default:
+      return s;
+  }
+}
+
 const cloneScriptCharacters = (characters: ScriptCharacter[] | undefined): ScriptCharacter[] => {
   if (!Array.isArray(characters) || characters.length === 0) {
     return [];
@@ -203,9 +218,15 @@ const cloneScriptCharacters = (characters: ScriptCharacter[] | undefined): Scrip
 const normalizeScriptProjectData = (projectId: string, projectData: any): ScriptProjectData => {
   const defaults = defaultProjectData();
   const defaultCalibration = defaultCalibrationState();
+  const rawLang = projectData?.language;
+  const language =
+    typeof rawLang === "string" && rawLang.trim()
+      ? migrateScriptLanguageValue(rawLang)
+      : defaults.language;
   const normalizedProject: ScriptProjectData = {
     ...defaults,
     ...projectData,
+    language,
     inputDraft: {
       ...defaultInputDraft,
       ...(projectData?.inputDraft || {}),
@@ -295,12 +316,13 @@ export const useScriptStore = create<ScriptStore>()(
 
       setLanguage: (projectId, language) => {
         get().ensureProject(projectId);
+        const normalized = migrateScriptLanguageValue(language);
         set((state) => ({
           projects: {
             ...state.projects,
             [projectId]: {
               ...state.projects[projectId],
-              language,
+              language: normalized,
               updatedAt: Date.now(),
             },
           },

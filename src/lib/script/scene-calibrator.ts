@@ -15,6 +15,11 @@
  */
 
 import type { ScriptScene, ProjectBackground, EpisodeRawScript, SceneRawContent, PromptLanguage } from '@/types/script';
+import {
+  promptLangIncludesEn,
+  promptLangIncludesVi,
+  promptLangIncludesZh,
+} from '@/lib/script/prompt-language-utils';
 import { callFeatureAPI } from '@/lib/ai/feature-router';
 import { processBatched } from '@/lib/ai/batch-processor';
 import { estimateTokens, safeTruncate } from '@/lib/ai/model-registry';
@@ -60,6 +65,8 @@ export interface CalibratedScene {
   visualPromptEn?: string;
   /** 中文视觉描述 */
   visualPromptZh?: string;
+  /** 越南语视觉描述 */
+  visualPromptVi?: string;
   /** 原始名称变体 */
   nameVariants: string[];
 }
@@ -590,14 +597,15 @@ ${keyScenes.map((s, i) => `${i+1}. ${s.name}
 
 【输出要求】
 为每个场景生成：
-${promptLanguage !== 'en' ? '- 中文视觉描述（100-150字，包含空间感、氛围、细节）' : ''}
-${promptLanguage !== 'zh' ? '- 英文视觉提示词（50-80词，适合AI图像生成，包含风格、光影、构图）' : ''}
+${promptLangIncludesZh(promptLanguage) ? '- 中文视觉描述（100-150字，包含空间感、氛围、细节）' : ''}
+${promptLangIncludesVi(promptLanguage) ? '- 越南语视觉描述（100-150 từ, Latin）' : ''}
+${promptLangIncludesEn(promptLanguage) ? '- 英文视觉提示词（50-80词，适合AI图像生成，包含风格、光影、构图）' : ''}
 
 请返回JSON格式：
 {
   "scenes": [
     {
-      "name": "场景名"${promptLanguage !== 'en' ? ',\n      "visualPromptZh": "中文视觉描述"' : ''}${promptLanguage !== 'zh' ? ',\n      "visualPromptEn": "English visual prompt for AI image generation"' : ''}
+      "name": "场景名"${promptLangIncludesZh(promptLanguage) ? ',\n      "visualPromptZh": "中文视觉描述"' : ''}${promptLangIncludesVi(promptLanguage) ? ',\n      "visualPromptVi": "Mô tả tiếng Việt"' : ''}${promptLangIncludesEn(promptLanguage) ? ',\n      "visualPromptEn": "English visual prompt for AI image generation"' : ''}
     }
   ]
 }`;
@@ -628,6 +636,7 @@ ${promptLanguage !== 'zh' ? '- 英文视觉提示词（50-80词，适合AI图像
           ...s,
           visualPromptZh: design.visualPromptZh,
           visualPromptEn: design.visualPromptEn,
+          visualPromptVi: design.visualPromptVi,
         };
       }
       return s;
@@ -660,6 +669,7 @@ export function convertToScriptScenes(
     const cleanedLocation = cleanLocationString(c.location);
     const nextVisualPromptZh = c.visualPromptZh || original?.visualPrompt;
     const nextVisualPromptEn = c.visualPromptEn || original?.visualPromptEn;
+    const nextVisualPromptVi = c.visualPromptVi || original?.visualPromptVi;
     
     return {
       // 保留原始字段
@@ -671,8 +681,9 @@ export function convertToScriptScenes(
       time: c.time,
       atmosphere: c.atmosphere,
       // 专业场景设计字段
-      visualPrompt: promptLanguage === 'en' ? undefined : nextVisualPromptZh,
-      visualPromptEn: promptLanguage === 'zh' ? undefined : nextVisualPromptEn,
+      visualPrompt: promptLangIncludesZh(promptLanguage) ? nextVisualPromptZh : undefined,
+      visualPromptEn: promptLangIncludesEn(promptLanguage) ? nextVisualPromptEn : undefined,
+      visualPromptVi: promptLangIncludesVi(promptLanguage) ? nextVisualPromptVi : undefined,
       architectureStyle: c.architectureStyle,
       lightingDesign: c.lightingDesign,
       colorPalette: c.colorPalette,

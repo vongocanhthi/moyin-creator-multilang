@@ -11,6 +11,11 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import type { ScriptCharacter, ScriptScene, Shot, CompletionStatus, Episode, EpisodeRawScript } from "@/types/script";
+import {
+  promptLangIncludesEn,
+  promptLangIncludesVi,
+  promptLangIncludesZh,
+} from "@/lib/script/prompt-language-utils";
 import { getShotCompletionStatus } from "@/lib/script/shot-utils";
 import { useActiveScriptProject } from "@/stores/script-store";
 import { Button } from "@/components/ui/button";
@@ -188,11 +193,17 @@ export function PropertyPanel({
     }
     
     // 视觉提示词（按提示词语言显示）
-    const includeZhScenePrompt = promptLanguage !== 'en';
-    const includeEnScenePrompt = promptLanguage !== 'zh';
-    if ((includeZhScenePrompt && scene.visualPrompt) || (includeEnScenePrompt && scene.visualPromptEn)) {
+    const includeZhScenePrompt = promptLangIncludesZh(promptLanguage);
+    const includeEnScenePrompt = promptLangIncludesEn(promptLanguage);
+    const includeViScenePrompt = promptLangIncludesVi(promptLanguage);
+    if (
+      (includeZhScenePrompt && scene.visualPrompt) ||
+      (includeViScenePrompt && scene.visualPromptVi) ||
+      (includeEnScenePrompt && scene.visualPromptEn)
+    ) {
       lines.push(`## 视觉提示词`);
       if (includeZhScenePrompt && scene.visualPrompt) lines.push(`中文：${scene.visualPrompt}`);
+      if (includeViScenePrompt && scene.visualPromptVi) lines.push(`Tiếng Việt: ${scene.visualPromptVi}`);
       if (includeEnScenePrompt && scene.visualPromptEn) lines.push(`English: ${scene.visualPromptEn}`);
       lines.push('');
     }
@@ -445,35 +456,47 @@ export function PropertyPanel({
         const tags = s.emotionTags.map(t => emotionLabels[t] || t).join('、');
         lines.push(`**情绪**: ${tags}`);
       }
-      if (promptLanguage !== 'zh' && (s as any).visualPrompt) {
+      if (promptLangIncludesEn(promptLanguage) && (s as any).visualPrompt) {
         lines.push(`**英文Prompt**: ${(s as any).visualPrompt}`);
       }
       // 三层提示词系统
-      if (s.imagePromptZh || s.imagePrompt) {
+      if (s.imagePromptZh || s.imagePrompt || s.imagePromptVi) {
         if (promptLanguage === 'zh') {
           lines.push(`**首帧提示词**: ${s.imagePromptZh || ''}`);
         } else if (promptLanguage === 'en') {
           lines.push(`**首帧提示词**: ${s.imagePrompt || ''}`);
+        } else if (promptLanguage === 'vi') {
+          lines.push(`**首帧提示词**: ${s.imagePromptVi || ''}`);
+        } else if (promptLanguage === 'vi+en') {
+          lines.push(`**首帧提示词**: ${s.imagePromptVi || ''} ${s.imagePrompt ? `(EN: ${s.imagePrompt})` : ''}`);
         } else {
           lines.push(`**首帧提示词**: ${s.imagePromptZh || ''} ${s.imagePrompt ? `(EN: ${s.imagePrompt})` : ''}`);
         }
       }
-      if (s.videoPromptZh || s.videoPrompt) {
+      if (s.videoPromptZh || s.videoPrompt || s.videoPromptVi) {
         if (promptLanguage === 'zh') {
           lines.push(`**视频提示词**: ${s.videoPromptZh || ''}`);
         } else if (promptLanguage === 'en') {
           lines.push(`**视频提示词**: ${s.videoPrompt || ''}`);
+        } else if (promptLanguage === 'vi') {
+          lines.push(`**视频提示词**: ${s.videoPromptVi || ''}`);
+        } else if (promptLanguage === 'vi+en') {
+          lines.push(`**视频提示词**: ${s.videoPromptVi || ''} ${s.videoPrompt ? `(EN: ${s.videoPrompt})` : ''}`);
         } else {
           lines.push(`**视频提示词**: ${s.videoPromptZh || ''} ${s.videoPrompt ? `(EN: ${s.videoPrompt})` : ''}`);
         }
       }
       if (s.needsEndFrame) {
         lines.push(`**需要尾帧**: 是`);
-        if (s.endFramePromptZh || s.endFramePrompt) {
+        if (s.endFramePromptZh || s.endFramePrompt || s.endFramePromptVi) {
           if (promptLanguage === 'zh') {
             lines.push(`**尾帧提示词**: ${s.endFramePromptZh || ''}`);
           } else if (promptLanguage === 'en') {
             lines.push(`**尾帧提示词**: ${s.endFramePrompt || ''}`);
+          } else if (promptLanguage === 'vi') {
+            lines.push(`**尾帧提示词**: ${s.endFramePromptVi || ''}`);
+          } else if (promptLanguage === 'vi+en') {
+            lines.push(`**尾帧提示词**: ${s.endFramePromptVi || ''} ${s.endFramePrompt ? `(EN: ${s.endFramePrompt})` : ''}`);
           } else {
             lines.push(`**尾帧提示词**: ${s.endFramePromptZh || ''} ${s.endFramePrompt ? `(EN: ${s.endFramePrompt})` : ''}`);
           }
@@ -498,9 +521,9 @@ export function PropertyPanel({
     if (!shot) return;
 
     const hasTri = !!(
-      shot.imagePrompt || shot.imagePromptZh ||
-      shot.videoPrompt || shot.videoPromptZh ||
-      shot.endFramePrompt || shot.endFramePromptZh
+      shot.imagePrompt || shot.imagePromptZh || shot.imagePromptVi ||
+      shot.videoPrompt || shot.videoPromptZh || shot.videoPromptVi ||
+      shot.endFramePrompt || shot.endFramePromptZh || shot.endFramePromptVi
     );
 
     // 景别中文映射
@@ -605,16 +628,21 @@ export function PropertyPanel({
       lines.push('───────────────────────────────────────');
       lines.push('【首帧提示词】用于生成视频的第一帧图片');
       lines.push('───────────────────────────────────────');
-      if (promptLanguage !== 'en' && shot.imagePromptZh) {
+      if (promptLangIncludesZh(promptLanguage) && shot.imagePromptZh) {
         lines.push(`中文: ${shot.imagePromptZh}`);
       }
-      if (promptLanguage !== 'zh' && shot.imagePrompt) {
+      if (promptLangIncludesVi(promptLanguage) && shot.imagePromptVi) {
+        lines.push(`Tiếng Việt: ${shot.imagePromptVi}`);
+      }
+      if (promptLangIncludesEn(promptLanguage) && shot.imagePrompt) {
         lines.push(`English: ${shot.imagePrompt}`);
       }
       if (
         (promptLanguage === 'zh' && !shot.imagePromptZh) ||
         (promptLanguage === 'en' && !shot.imagePrompt) ||
-        (promptLanguage === 'zh+en' && !shot.imagePrompt && !shot.imagePromptZh)
+        (promptLanguage === 'vi' && !shot.imagePromptVi) ||
+        (promptLanguage === 'zh+en' && !shot.imagePrompt && !shot.imagePromptZh) ||
+        (promptLanguage === 'vi+en' && !shot.imagePrompt && !shot.imagePromptVi)
       ) {
         lines.push('(未生成)');
       }
@@ -624,16 +652,21 @@ export function PropertyPanel({
       lines.push('───────────────────────────────────────');
       lines.push('【视频提示词】用于图生视频，描述动作和运动');
       lines.push('───────────────────────────────────────');
-      if (promptLanguage !== 'en' && shot.videoPromptZh) {
+      if (promptLangIncludesZh(promptLanguage) && shot.videoPromptZh) {
         lines.push(`中文: ${shot.videoPromptZh}`);
       }
-      if (promptLanguage !== 'zh' && shot.videoPrompt) {
+      if (promptLangIncludesVi(promptLanguage) && shot.videoPromptVi) {
+        lines.push(`Tiếng Việt: ${shot.videoPromptVi}`);
+      }
+      if (promptLangIncludesEn(promptLanguage) && shot.videoPrompt) {
         lines.push(`English: ${shot.videoPrompt}`);
       }
       if (
         (promptLanguage === 'zh' && !shot.videoPromptZh) ||
         (promptLanguage === 'en' && !shot.videoPrompt) ||
-        (promptLanguage === 'zh+en' && !shot.videoPrompt && !shot.videoPromptZh)
+        (promptLanguage === 'vi' && !shot.videoPromptVi) ||
+        (promptLanguage === 'zh+en' && !shot.videoPrompt && !shot.videoPromptZh) ||
+        (promptLanguage === 'vi+en' && !shot.videoPrompt && !shot.videoPromptVi)
       ) {
         lines.push('(未生成)');
       }
@@ -645,16 +678,21 @@ export function PropertyPanel({
       lines.push('───────────────────────────────────────');
       if (shot.needsEndFrame) {
         lines.push('需要尾帧: ✓ 是');
-        if (promptLanguage !== 'en' && shot.endFramePromptZh) {
+        if (promptLangIncludesZh(promptLanguage) && shot.endFramePromptZh) {
           lines.push(`中文: ${shot.endFramePromptZh}`);
         }
-        if (promptLanguage !== 'zh' && shot.endFramePrompt) {
+        if (promptLangIncludesVi(promptLanguage) && shot.endFramePromptVi) {
+          lines.push(`Tiếng Việt: ${shot.endFramePromptVi}`);
+        }
+        if (promptLangIncludesEn(promptLanguage) && shot.endFramePrompt) {
           lines.push(`English: ${shot.endFramePrompt}`);
         }
         if (
           (promptLanguage === 'zh' && !shot.endFramePromptZh) ||
           (promptLanguage === 'en' && !shot.endFramePrompt) ||
-          (promptLanguage === 'zh+en' && !shot.endFramePrompt && !shot.endFramePromptZh)
+          (promptLanguage === 'vi' && !shot.endFramePromptVi) ||
+          (promptLanguage === 'zh+en' && !shot.endFramePrompt && !shot.endFramePromptZh) ||
+          (promptLanguage === 'vi+en' && !shot.endFramePrompt && !shot.endFramePromptVi)
         ) {
           lines.push('(未生成)');
         }
@@ -973,15 +1011,20 @@ export function PropertyPanel({
               )}
               
               {/* 视觉提示词（世界级大师生成） */}
-              {((promptLanguage !== 'en' && character.visualPromptZh) || (promptLanguage !== 'zh' && character.visualPromptEn)) && (
+              {((promptLangIncludesZh(promptLanguage) && character.visualPromptZh) ||
+                (promptLangIncludesVi(promptLanguage) && character.visualPromptVi) ||
+                (promptLangIncludesEn(promptLanguage) && character.visualPromptEn)) && (
                 <div className="bg-gradient-to-r from-purple-500/10 to-transparent p-2 rounded-lg border-l-2 border-purple-500/30">
                   <div className="text-xs text-purple-600 dark:text-purple-400 mb-1">
                     {t("scriptPanel.property.visualPromptTitle")}
                   </div>
-                  {promptLanguage !== 'en' && character.visualPromptZh && (
+                  {promptLangIncludesZh(promptLanguage) && character.visualPromptZh && (
                     <div className="text-xs text-muted-foreground mb-1">{character.visualPromptZh}</div>
                   )}
-                  {promptLanguage !== 'zh' && character.visualPromptEn && (
+                  {promptLangIncludesVi(promptLanguage) && character.visualPromptVi && (
+                    <div className="text-xs text-muted-foreground mb-1">{character.visualPromptVi}</div>
+                  )}
+                  {promptLangIncludesEn(promptLanguage) && character.visualPromptEn && (
                     <div className="text-xs text-muted-foreground/70 italic">{character.visualPromptEn}</div>
                   )}
                 </div>
@@ -1258,18 +1301,26 @@ export function PropertyPanel({
               )}
               
               {/* 视觉提示词（AI校准后显示） */}
-              {((promptLanguage !== 'en' && scene.visualPrompt) || (promptLanguage !== 'zh' && scene.visualPromptEn)) && (
+              {((promptLangIncludesZh(promptLanguage) && scene.visualPrompt) ||
+                (promptLangIncludesVi(promptLanguage) && scene.visualPromptVi) ||
+                (promptLangIncludesEn(promptLanguage) && scene.visualPromptEn)) && (
                 <>
                   <Separator className="my-2" />
                   <div className="text-xs font-medium text-primary mb-2">{t("scriptPanel.property.visualPrompt")}</div>
                   
-                  {promptLanguage !== 'en' && scene.visualPrompt && (
+                  {promptLangIncludesZh(promptLanguage) && scene.visualPrompt && (
                     <div>
                       <div className="text-xs text-muted-foreground mb-1">{t("scriptPanel.property.promptZhShort")}</div>
                       <div className="text-sm text-muted-foreground">{scene.visualPrompt}</div>
                     </div>
                   )}
-                  {promptLanguage !== 'zh' && scene.visualPromptEn && (
+                  {promptLangIncludesVi(promptLanguage) && scene.visualPromptVi && (
+                    <div>
+                      <div className="text-xs text-muted-foreground mb-1">{t("scriptPanel.property.promptViShort")}</div>
+                      <div className="text-sm text-muted-foreground">{scene.visualPromptVi}</div>
+                    </div>
+                  )}
+                  {promptLangIncludesEn(promptLanguage) && scene.visualPromptEn && (
                     <div>
                       <div className="text-xs text-muted-foreground mb-1">English</div>
                       <div className="text-sm text-muted-foreground italic">{scene.visualPromptEn}</div>

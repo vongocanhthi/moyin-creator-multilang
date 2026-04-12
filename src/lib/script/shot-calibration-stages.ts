@@ -222,7 +222,8 @@ ${contextLine}${narrativeAnchorBlock}${episodeSynopsis ? `\n\n【本集大纲】
   // ===================== Stage 2: 视觉描述 + 音频 =====================
   onStageProgress?.(2, 5, '视觉描述');
   console.log('[MultiStage] Stage 2/5: 视觉描述');
-  const includeEnVisualPrompt = promptLanguage !== 'zh';
+  const includeEnVisualPrompt =
+    promptLanguage === 'en' || promptLanguage === 'zh+en' || promptLanguage === 'vi+en';
   const s2VisualPromptRule = includeEnVisualPrompt
     ? '\n- visualPrompt: 纯英文，40词内，AI绘图用'
     : '';
@@ -303,21 +304,36 @@ ${s2VisualPromptRule}
   console.log('[MultiStage] Stage 4/5: 首帧提示词');
 
   // Stage 4: 根据 promptLanguage 动态调整输出字段
-  const s4Fields = promptLanguage === 'zh'
-    ? 'imagePromptZh (纯中文, 60-100字)'
-    : promptLanguage === 'en'
-    ? 'imagePrompt (纯英文, 60-80词)'
-    : 'imagePrompt (纯英文, 60-80词) 和 imagePromptZh (纯中文, 60-100字)';
-  const s4JsonFormat = promptLanguage === 'zh'
-    ? '{"shots":{"shot_id":{"imagePromptZh":"","needsEndFrame":true}}}'
-    : promptLanguage === 'en'
-    ? '{"shots":{"shot_id":{"imagePrompt":"","needsEndFrame":true}}}'
-    : '{"shots":{"shot_id":{"imagePrompt":"","imagePromptZh":"","needsEndFrame":true}}}';
-  const s4LangWarning = promptLanguage === 'zh'
-    ? '\n⚠️ imagePromptZh 必须纯中文'
-    : promptLanguage === 'en'
-    ? '\n⚠️ imagePrompt 必须100%纯英文，禁止任何中文字符'
-    : '\n⚠️ imagePrompt 必须100%纯英文，禁止任何中文字符\n⚠️ imagePromptZh 必须纯中文';
+  const s4Fields =
+    promptLanguage === 'zh'
+      ? 'imagePromptZh (纯中文, 60-100字)'
+      : promptLanguage === 'en'
+        ? 'imagePrompt (纯英文, 60-80词)'
+        : promptLanguage === 'vi'
+          ? 'imagePromptVi (越南语拉丁字母, 40-80 từ)'
+          : promptLanguage === 'vi+en'
+            ? 'imagePrompt (纯英文, 60-80词) 和 imagePromptVi (越南语, 40-80 từ)'
+            : 'imagePrompt (纯英文, 60-80词) 和 imagePromptZh (纯中文, 60-100字)';
+  const s4JsonFormat =
+    promptLanguage === 'zh'
+      ? '{"shots":{"shot_id":{"imagePromptZh":"","needsEndFrame":true}}}'
+      : promptLanguage === 'en'
+        ? '{"shots":{"shot_id":{"imagePrompt":"","needsEndFrame":true}}}'
+        : promptLanguage === 'vi'
+          ? '{"shots":{"shot_id":{"imagePromptVi":"","needsEndFrame":true}}}'
+          : promptLanguage === 'vi+en'
+            ? '{"shots":{"shot_id":{"imagePrompt":"","imagePromptVi":"","needsEndFrame":true}}}'
+            : '{"shots":{"shot_id":{"imagePrompt":"","imagePromptZh":"","needsEndFrame":true}}}';
+  const s4LangWarning =
+    promptLanguage === 'zh'
+      ? '\n⚠️ imagePromptZh 必须纯中文'
+      : promptLanguage === 'en'
+        ? '\n⚠️ imagePrompt 必须100%纯英文，禁止任何中文字符'
+        : promptLanguage === 'vi'
+          ? '\n⚠️ imagePromptVi 必须使用越南语（拉丁字母）'
+          : promptLanguage === 'vi+en'
+            ? '\n⚠️ imagePrompt 必须100%纯英文\n⚠️ imagePromptVi 必须使用越南语'
+            : '\n⚠️ imagePrompt 必须100%纯英文，禁止任何中文字符\n⚠️ imagePromptZh 必须纯中文';
 
   const s4System = `你是AI图像生成专家。根据视觉描述和拍摄参数，生成首帧提示词。${eraContextBlock}
 
@@ -358,26 +374,46 @@ needsEndFrame 判断：
   console.log('[MultiStage] Stage 5/5: 动态+尾帧提示词');
 
   // Stage 5: 根据 promptLanguage 动态调整输出字段
-  const s5VideoFields = promptLanguage === 'zh'
-    ? 'videoPromptZh (纯中文)'
-    : promptLanguage === 'en'
-    ? 'videoPrompt (纯英文)'
-    : 'videoPrompt (纯英文) / videoPromptZh (纯中文)';
-  const s5EndFields = promptLanguage === 'zh'
-    ? 'endFramePromptZh (纯中文, 60-100字)'
-    : promptLanguage === 'en'
-    ? 'endFramePrompt (纯英文, 60-80词)'
-    : 'endFramePrompt (纯英文, 60-80词) / endFramePromptZh (纯中文, 60-100字)';
-  const s5JsonFormat = promptLanguage === 'zh'
-    ? '{"shots":{"shot_id":{"videoPromptZh":"","endFramePromptZh":""}}}'
-    : promptLanguage === 'en'
-    ? '{"shots":{"shot_id":{"videoPrompt":"","endFramePrompt":""}}}'
-    : '{"shots":{"shot_id":{"videoPrompt":"","videoPromptZh":"","endFramePrompt":"","endFramePromptZh":""}}}';
-  const s5LangWarning = promptLanguage === 'zh'
-    ? '\n⚠️ 中文字段必须纯中文'
-    : promptLanguage === 'en'
-    ? '\n⚠️ 英文字段必须100%纯英文'
-    : '\n⚠️ 英文字段100%纯英文，中文字段纯中文';
+  const s5VideoFields =
+    promptLanguage === 'zh'
+      ? 'videoPromptZh (纯中文)'
+      : promptLanguage === 'en'
+        ? 'videoPrompt (纯英文)'
+        : promptLanguage === 'vi'
+          ? 'videoPromptVi (越南语)'
+          : promptLanguage === 'vi+en'
+            ? 'videoPrompt (纯英文) / videoPromptVi (越南语)'
+            : 'videoPrompt (纯英文) / videoPromptZh (纯中文)';
+  const s5EndFields =
+    promptLanguage === 'zh'
+      ? 'endFramePromptZh (纯中文, 60-100字)'
+      : promptLanguage === 'en'
+        ? 'endFramePrompt (纯英文, 60-80词)'
+        : promptLanguage === 'vi'
+          ? 'endFramePromptVi (越南语, 60-100 từ)'
+          : promptLanguage === 'vi+en'
+            ? 'endFramePrompt (纯英文, 60-80词) / endFramePromptVi (越南语)'
+            : 'endFramePrompt (纯英文, 60-80词) / endFramePromptZh (纯中文, 60-100字)';
+  const s5JsonFormat =
+    promptLanguage === 'zh'
+      ? '{"shots":{"shot_id":{"videoPromptZh":"","endFramePromptZh":""}}}'
+      : promptLanguage === 'en'
+        ? '{"shots":{"shot_id":{"videoPrompt":"","endFramePrompt":""}}}'
+        : promptLanguage === 'vi'
+          ? '{"shots":{"shot_id":{"videoPromptVi":"","endFramePromptVi":""}}}'
+          : promptLanguage === 'vi+en'
+            ? '{"shots":{"shot_id":{"videoPrompt":"","videoPromptVi":"","endFramePrompt":"","endFramePromptVi":""}}}'
+            : '{"shots":{"shot_id":{"videoPrompt":"","videoPromptZh":"","endFramePrompt":"","endFramePromptZh":""}}}';
+  const s5LangWarning =
+    promptLanguage === 'zh'
+      ? '\n⚠️ 中文字段必须纯中文'
+      : promptLanguage === 'en'
+        ? '\n⚠️ 英文字段必须100%纯英文'
+        : promptLanguage === 'vi'
+          ? '\n⚠️ 越南语字段使用拉丁字母'
+          : promptLanguage === 'vi+en'
+            ? '\n⚠️ 英文字段100%纯英文；越南语字段使用越南语'
+            : '\n⚠️ 英文字段100%纯英文，中文字段纯中文';
 
   const s5System = `你是AI视频生成专家。根据首帧画面，生成视频动作描述和尾帧画面。${eraContextBlock}
 

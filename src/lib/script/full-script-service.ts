@@ -1281,24 +1281,30 @@ function applyPromptLanguageToShotPrompts(
   existingShot: Shot,
   calibration: Record<string, any>,
   promptLanguage: PromptLanguage = 'zh+en',
-): Pick<Shot, 'visualPrompt' | 'imagePrompt' | 'imagePromptZh' | 'videoPrompt' | 'videoPromptZh' | 'endFramePrompt' | 'endFramePromptZh'> {
+): Pick<Shot, 'visualPrompt' | 'imagePrompt' | 'imagePromptZh' | 'imagePromptVi' | 'videoPrompt' | 'videoPromptZh' | 'videoPromptVi' | 'endFramePrompt' | 'endFramePromptZh' | 'endFramePromptVi'> {
   const nextVisualPrompt = calibration.visualPrompt || existingShot.visualPrompt;
   const nextImagePrompt = calibration.imagePrompt || existingShot.imagePrompt;
   const nextImagePromptZh = calibration.imagePromptZh || existingShot.imagePromptZh;
+  const nextImagePromptVi = calibration.imagePromptVi || existingShot.imagePromptVi;
   const nextVideoPrompt = calibration.videoPrompt || existingShot.videoPrompt;
   const nextVideoPromptZh = calibration.videoPromptZh || existingShot.videoPromptZh;
+  const nextVideoPromptVi = calibration.videoPromptVi || existingShot.videoPromptVi;
   const nextEndFramePrompt = calibration.endFramePrompt || existingShot.endFramePrompt;
   const nextEndFramePromptZh = calibration.endFramePromptZh || existingShot.endFramePromptZh;
+  const nextEndFramePromptVi = calibration.endFramePromptVi || existingShot.endFramePromptVi;
 
   if (promptLanguage === 'zh') {
     return {
       visualPrompt: undefined,
       imagePrompt: undefined,
       imagePromptZh: nextImagePromptZh,
+      imagePromptVi: undefined,
       videoPrompt: undefined,
       videoPromptZh: nextVideoPromptZh,
+      videoPromptVi: undefined,
       endFramePrompt: undefined,
       endFramePromptZh: nextEndFramePromptZh,
+      endFramePromptVi: undefined,
     };
   }
 
@@ -1307,10 +1313,43 @@ function applyPromptLanguageToShotPrompts(
       visualPrompt: nextVisualPrompt,
       imagePrompt: nextImagePrompt,
       imagePromptZh: undefined,
+      imagePromptVi: undefined,
       videoPrompt: nextVideoPrompt,
       videoPromptZh: undefined,
+      videoPromptVi: undefined,
       endFramePrompt: nextEndFramePrompt,
       endFramePromptZh: undefined,
+      endFramePromptVi: undefined,
+    };
+  }
+
+  if (promptLanguage === 'vi') {
+    return {
+      visualPrompt: undefined,
+      imagePrompt: undefined,
+      imagePromptZh: undefined,
+      imagePromptVi: nextImagePromptVi,
+      videoPrompt: undefined,
+      videoPromptZh: undefined,
+      videoPromptVi: nextVideoPromptVi,
+      endFramePrompt: undefined,
+      endFramePromptZh: undefined,
+      endFramePromptVi: nextEndFramePromptVi,
+    };
+  }
+
+  if (promptLanguage === 'vi+en') {
+    return {
+      visualPrompt: nextVisualPrompt,
+      imagePrompt: nextImagePrompt,
+      imagePromptZh: undefined,
+      imagePromptVi: nextImagePromptVi,
+      videoPrompt: nextVideoPrompt,
+      videoPromptZh: undefined,
+      videoPromptVi: nextVideoPromptVi,
+      endFramePrompt: nextEndFramePrompt,
+      endFramePromptZh: undefined,
+      endFramePromptVi: nextEndFramePromptVi,
     };
   }
 
@@ -1318,10 +1357,13 @@ function applyPromptLanguageToShotPrompts(
     visualPrompt: nextVisualPrompt,
     imagePrompt: nextImagePrompt,
     imagePromptZh: nextImagePromptZh,
+    imagePromptVi: undefined,
     videoPrompt: nextVideoPrompt,
     videoPromptZh: nextVideoPromptZh,
+    videoPromptVi: undefined,
     endFramePrompt: nextEndFramePrompt,
     endFramePromptZh: nextEndFramePromptZh,
+    endFramePromptVi: undefined,
   };
 }
 

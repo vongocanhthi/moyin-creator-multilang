@@ -4,8 +4,8 @@
 // 完成状态
 export type CompletionStatus = 'pending' | 'in_progress' | 'completed';
 
-// 提示词语言选项
-export type PromptLanguage = 'zh' | 'en' | 'zh+en';
+// 提示词语言选项（vi / vi+en：越南语提示词，vi+en 同时生成英文供图像/视频模型）
+export type PromptLanguage = 'zh' | 'en' | 'vi' | 'zh+en' | 'vi+en';
 
 // AI角色校准严格度
 export type CalibrationStrictness = 'strict' | 'normal' | 'loose';
@@ -104,6 +104,7 @@ export interface ScriptCharacter {
   consistencyElements?: CharacterConsistencyElements; // 一致性元素（基础角色定义，阶段角色继承）
   visualPromptEn?: string;         // 英文视觉提示词（用于AI图像生成）
   visualPromptZh?: string;         // 中文视觉提示词
+  visualPromptVi?: string;         // 越南语视觉提示词（promptLanguage vi / vi+en）
   
   // === 6层身份锚点（AI校准时填充）===
   identityAnchors?: CharacterIdentityAnchors;  // 身份锚点（用于角色一致性）
@@ -117,6 +118,7 @@ export interface ScriptScene {
   time: string;
   atmosphere: string;
   visualPrompt?: string; // 中文场景视觉描述（用于场景概念图生成）
+  visualPromptVi?: string; // 越南语场景视觉描述（promptLanguage vi / vi+en）
   tags?: string[]; // 场景标签，如: #木柱 #窗棂 #古建筑
   notes?: string; // 地点备注（剧情说明）
   status?: CompletionStatus; // 场景生成状态
@@ -478,10 +480,13 @@ export interface Shot {
   // === 三层提示词系统 (Seedance 1.5 Pro) ===
   imagePrompt?: string;      // 首帧提示词（英文，静态描述）
   imagePromptZh?: string;    // 首帧提示词（中文）
+  imagePromptVi?: string;    // 首帧提示词（越南语）
   videoPrompt?: string;      // 视频提示词（英文，动态动作）
   videoPromptZh?: string;    // 视频提示词（中文）
+  videoPromptVi?: string;    // 视频提示词（越南语）
   endFramePrompt?: string;   // 尾帧提示词（英文，静态描述）
   endFramePromptZh?: string; // 尾帧提示词（中文）
+  endFramePromptVi?: string;  // 尾帧提示词（越南语）
   needsEndFrame?: boolean;   // 是否需要尾帧
   
   // === 音频设计 ===

@@ -15,6 +15,11 @@
  */
 
 import type { ScriptCharacter, ProjectBackground, EpisodeRawScript, CharacterIdentityAnchors, CharacterNegativePrompt, PromptLanguage, CalibrationStrictness, FilteredCharacterRecord } from '@/types/script';
+import {
+  promptLangIncludesEn,
+  promptLangIncludesVi,
+  promptLangIncludesZh,
+} from '@/lib/script/prompt-language-utils';
 import { callFeatureAPI } from '@/lib/ai/feature-router';
 import { processBatched } from '@/lib/ai/batch-processor';
 import { estimateTokens, safeTruncate } from '@/lib/ai/model-registry';
@@ -60,6 +65,8 @@ export interface CalibratedCharacter {
   visualPromptEn?: string;
   /** 中文视觉提示词 */
   visualPromptZh?: string;
+  /** 越南语视觉提示词 */
+  visualPromptVi?: string;
   /** 面部特征描述 */
   facialFeatures?: string;
   /** 独特标记（疆痕、胎记等） */
@@ -769,6 +776,7 @@ export function convertToScriptCharacters(
     
     const nextVisualPromptEn = c.visualPromptEn || original?.visualPromptEn;
     const nextVisualPromptZh = c.visualPromptZh || original?.visualPromptZh;
+    const nextVisualPromptVi = c.visualPromptVi || original?.visualPromptVi;
     // 合并：保留原始数据，只补充/更新 AI 生成的字段
     return {
       // 保留原始字段
@@ -781,8 +789,9 @@ export function convertToScriptCharacters(
       gender: c.gender || original?.gender,
       relationships: c.relationships || original?.relationships,
       // === 专业角色设计字段（世界级大师生成）===
-      visualPromptEn: promptLanguage === 'zh' ? undefined : nextVisualPromptEn,
-      visualPromptZh: promptLanguage === 'en' ? undefined : nextVisualPromptZh,
+      visualPromptEn: promptLangIncludesEn(promptLanguage) ? nextVisualPromptEn : undefined,
+      visualPromptZh: promptLangIncludesZh(promptLanguage) ? nextVisualPromptZh : undefined,
+      visualPromptVi: promptLangIncludesVi(promptLanguage) ? nextVisualPromptVi : undefined,
       appearance: c.facialFeatures || c.uniqueMarks || c.clothingStyle 
         ? [c.facialFeatures, c.uniqueMarks, c.clothingStyle].filter(Boolean).join(', ')
         : original?.appearance,
@@ -1111,7 +1120,7 @@ ${promptLanguage === 'zh' ? `【核心输出：6层身份锚点】
 {
   "name": "角色名",
   "detailedDescription": "详细的中文角色描述（100-200字）",
-${promptLanguage === 'zh' ? '  "visualPromptZh": "中文视觉提示词",' : promptLanguage === 'en' ? '  "visualPromptEn": "English visual prompt, 40-60 words",' : '  "visualPromptEn": "English visual prompt, 40-60 words",\n  "visualPromptZh": "中文视觉提示词",'}
+${promptLanguage === 'zh' ? '  "visualPromptZh": "中文视觉提示词",' : promptLanguage === 'en' ? '  "visualPromptEn": "English visual prompt, 40-60 words",' : promptLanguage === 'vi' ? '  "visualPromptVi": "Mô tả thị giác tiếng Việt, 40-60 từ",' : promptLanguage === 'vi+en' ? '  "visualPromptEn": "English visual prompt, 40-60 words",\n  "visualPromptVi": "Mô tả tiếng Việt tương ứng",' : '  "visualPromptEn": "English visual prompt, 40-60 words",\n  "visualPromptZh": "中文视觉提示词",'}
   "clothingStyle": "符合年代的服装风格",
   "identityAnchors": {
 ${promptLanguage === 'zh' ? `    "faceShape": "长圆形",
@@ -1220,6 +1229,7 @@ ${c.name}（${c.importance === 'protagonist' ? '主角' : '重要配角'}）
         role: design.detailedDescription || c.role,
         visualPromptEn: design.visualPromptEn,
         visualPromptZh: design.visualPromptZh,
+        visualPromptVi: design.visualPromptVi,
         facialFeatures,
         uniqueMarks,
         clothingStyle: design.clothingStyle,

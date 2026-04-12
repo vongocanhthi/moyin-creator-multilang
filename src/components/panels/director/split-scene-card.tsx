@@ -83,15 +83,14 @@ import { MediaLibrarySelector } from "./media-library-selector";
 import { EditableTextField } from "./editable-text-field";
 import { useResolvedImageUrl } from "@/hooks/use-resolved-image-url";
 import { useTranslation } from "react-i18next";
-
 export interface SplitSceneCardProps {
   scene: SplitScene;
   /** 提示词语言设置（来自剧本面板），决定编辑/显示哪个语言字段 */
   promptLanguage?: PromptLanguage;
   // 三层提示词更新回调
-  onUpdateImagePrompt: (id: number, prompt: string, promptZh?: string) => void;
-  onUpdateVideoPrompt: (id: number, prompt: string, promptZh?: string) => void;
-  onUpdateEndFramePrompt: (id: number, prompt: string, promptZh?: string) => void;
+  onUpdateImagePrompt: (id: number, prompt: string, promptZh?: string, promptVi?: string) => void;
+  onUpdateVideoPrompt: (id: number, prompt: string, promptZh?: string, promptVi?: string) => void;
+  onUpdateEndFramePrompt: (id: number, prompt: string, promptZh?: string, promptVi?: string) => void;
   onUpdateNeedsEndFrame: (id: number, needsEndFrame: boolean) => void;
   onUpdateEndFrame: (id: number, imageUrl: string | null) => void;
   onUpdateCharacters: (id: number, characterIds: string[]) => void;
@@ -185,22 +184,24 @@ export function SplitSceneCard({
   const resolvedImageUrl = useResolvedImageUrl(effectiveImageUrl);
   const resolvedEndFrameUrl = useResolvedImageUrl(effectiveEndFrameUrl);
 
-  // 根据语言设置获取对应的提示词字段值
-  const getPromptByLanguage = (zh: string | undefined, en: string | undefined): string => {
-    if (promptLanguage === 'en') return en || '';
-    if (promptLanguage === 'zh') return zh || '';
-    // zh+en: 优先中文，回退英文
-    return zh || en || '';
+  // 根据语言设置获取对应的提示词字段值（含越南语）
+  const getTriPrompt = (zh: string | undefined, en: string | undefined, vi: string | undefined): string => {
+    if (promptLanguage === "en") return en || "";
+    if (promptLanguage === "zh") return zh || "";
+    if (promptLanguage === "vi") return vi || "";
+    if (promptLanguage === "zh+en") return zh || en || "";
+    if (promptLanguage === "vi+en") return vi || en || "";
+    return zh || en || "";
   };
 
   // 开始编辑某个提示词（根据语言选择对应字段）
   const startEditing = (type: 'image' | 'video' | 'endFrame') => {
     if (type === 'image') {
-      setEditPromptValue(getPromptByLanguage(scene.imagePromptZh, scene.imagePrompt));
+      setEditPromptValue(getTriPrompt(scene.imagePromptZh, scene.imagePrompt, scene.imagePromptVi));
     } else if (type === 'video') {
-      setEditPromptValue(getPromptByLanguage(scene.videoPromptZh, scene.videoPrompt));
+      setEditPromptValue(getTriPrompt(scene.videoPromptZh, scene.videoPrompt, scene.videoPromptVi));
     } else {
-      setEditPromptValue(getPromptByLanguage(scene.endFramePromptZh, scene.endFramePrompt));
+      setEditPromptValue(getTriPrompt(scene.endFramePromptZh, scene.endFramePrompt, scene.endFramePromptVi));
     }
     setEditingPrompt(type);
   };
@@ -210,10 +211,12 @@ export function SplitSceneCard({
     const isEn = promptLanguage === "en";
 
     if (editingPrompt === "image") {
-      if (isEn) {
-        onUpdateImagePrompt(scene.id, editPromptValue, scene.imagePromptZh);
+      if (promptLanguage === "vi" || promptLanguage === "vi+en") {
+        onUpdateImagePrompt(scene.id, scene.imagePrompt, scene.imagePromptZh, editPromptValue);
+      } else if (isEn) {
+        onUpdateImagePrompt(scene.id, editPromptValue, scene.imagePromptZh, scene.imagePromptVi);
       } else {
-        onUpdateImagePrompt(scene.id, scene.imagePrompt, editPromptValue);
+        onUpdateImagePrompt(scene.id, scene.imagePrompt, editPromptValue, scene.imagePromptVi);
       }
       toast.success(
         t(isEn ? "director.splitSceneCard.toast.imagePromptEn" : "director.splitSceneCard.toast.imagePromptZh", {
@@ -221,10 +224,12 @@ export function SplitSceneCard({
         }),
       );
     } else if (editingPrompt === "video") {
-      if (isEn) {
-        onUpdateVideoPrompt(scene.id, editPromptValue, scene.videoPromptZh);
+      if (promptLanguage === "vi" || promptLanguage === "vi+en") {
+        onUpdateVideoPrompt(scene.id, scene.videoPrompt, scene.videoPromptZh, editPromptValue);
+      } else if (isEn) {
+        onUpdateVideoPrompt(scene.id, editPromptValue, scene.videoPromptZh, scene.videoPromptVi);
       } else {
-        onUpdateVideoPrompt(scene.id, scene.videoPrompt, editPromptValue);
+        onUpdateVideoPrompt(scene.id, scene.videoPrompt, editPromptValue, scene.videoPromptVi);
       }
       toast.success(
         t(isEn ? "director.splitSceneCard.toast.videoPromptEn" : "director.splitSceneCard.toast.videoPromptZh", {
@@ -232,10 +237,12 @@ export function SplitSceneCard({
         }),
       );
     } else if (editingPrompt === "endFrame") {
-      if (isEn) {
-        onUpdateEndFramePrompt(scene.id, editPromptValue, scene.endFramePromptZh);
+      if (promptLanguage === "vi" || promptLanguage === "vi+en") {
+        onUpdateEndFramePrompt(scene.id, scene.endFramePrompt, scene.endFramePromptZh, editPromptValue);
+      } else if (isEn) {
+        onUpdateEndFramePrompt(scene.id, editPromptValue, scene.endFramePromptZh, scene.endFramePromptVi);
       } else {
-        onUpdateEndFramePrompt(scene.id, scene.endFramePrompt, editPromptValue);
+        onUpdateEndFramePrompt(scene.id, scene.endFramePrompt, editPromptValue, scene.endFramePromptVi);
       }
       toast.success(
         t(isEn ? "director.splitSceneCard.toast.endPromptEn" : "director.splitSceneCard.toast.endPromptZh", {
@@ -1007,7 +1014,7 @@ export function SplitSceneCard({
               </span>
               <span className={cn(
                 "text-[9px] px-1.5 py-0.5 rounded-full inline-flex items-center gap-0.5 border",
-                getPromptByLanguage(scene.imagePromptZh, scene.imagePrompt)
+                getTriPrompt(scene.imagePromptZh, scene.imagePrompt, scene.imagePromptVi)
                   ? "bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/20"
                   : "bg-muted text-muted-foreground/40 border-transparent"
               )}>
@@ -1015,7 +1022,7 @@ export function SplitSceneCard({
               </span>
               <span className={cn(
                 "text-[9px] px-1.5 py-0.5 rounded-full inline-flex items-center gap-0.5 border",
-                getPromptByLanguage(scene.endFramePromptZh, scene.endFramePrompt)
+                getTriPrompt(scene.endFramePromptZh, scene.endFramePrompt, scene.endFramePromptVi)
                   ? "bg-orange-500/15 text-orange-600 dark:text-orange-400 border-orange-500/20"
                   : scene.needsEndFrame
                     ? "bg-orange-500/5 text-orange-400/60 border-dashed border-orange-400/30"
@@ -1025,7 +1032,7 @@ export function SplitSceneCard({
               </span>
               <span className={cn(
                 "text-[9px] px-1.5 py-0.5 rounded-full inline-flex items-center gap-0.5 border",
-                getPromptByLanguage(scene.videoPromptZh, scene.videoPrompt)
+                getTriPrompt(scene.videoPromptZh, scene.videoPrompt, scene.videoPromptVi)
                   ? "bg-green-500/15 text-green-600 dark:text-green-400 border-green-500/20"
                   : "bg-muted text-muted-foreground/40 border-transparent"
               )}>
@@ -1086,7 +1093,7 @@ export function SplitSceneCard({
                     onClick={() => !isGeneratingAny && startEditing('image')}
                   >
                     <p className="text-[11px] text-muted-foreground flex-1 line-clamp-6 min-h-[4.5em]">
-                      {getPromptByLanguage(scene.imagePromptZh, scene.imagePrompt) ||
+                      {getTriPrompt(scene.imagePromptZh, scene.imagePrompt, scene.imagePromptVi) ||
                         t("director.splitSceneCard.tapAddStart")}
                     </p>
                     {!isGeneratingAny && <Edit3 className="h-2.5 w-2.5 text-blue-500/50 shrink-0 mt-0.5" />}
@@ -1135,7 +1142,7 @@ export function SplitSceneCard({
                       "text-[11px] flex-1 line-clamp-6 min-h-[4.5em]",
                       "text-orange-600 dark:text-orange-400"
                     )}>
-                      {getPromptByLanguage(scene.endFramePromptZh, scene.endFramePrompt) ||
+                      {getTriPrompt(scene.endFramePromptZh, scene.endFramePrompt, scene.endFramePromptVi) ||
                         (scene.needsEndFrame
                           ? t("director.splitSceneCard.tapAddEnd")
                           : t("director.splitSceneCard.tapAddEndOpt"))}
@@ -1178,7 +1185,7 @@ export function SplitSceneCard({
                     onClick={() => !isGeneratingAny && startEditing('video')}
                   >
                     <p className="text-[11px] text-green-600 dark:text-green-400 flex-1 line-clamp-6 min-h-[4.5em]">
-                      {getPromptByLanguage(scene.videoPromptZh, scene.videoPrompt) ||
+                      {getTriPrompt(scene.videoPromptZh, scene.videoPrompt, scene.videoPromptVi) ||
                         t("director.splitSceneCard.tapAddVideo")}
                     </p>
                     {!isGeneratingAny && <Edit3 className="h-2.5 w-2.5 text-green-500/50 shrink-0 mt-0.5" />}
@@ -1205,16 +1212,16 @@ export function SplitSceneCard({
                   <ImageIcon className="h-2.5 w-2.5" /> {t("director.splitSceneCard.summaryStart")}
                 </span>
                 <span className="text-muted-foreground">
-                  {getPromptByLanguage(scene.imagePromptZh, scene.imagePrompt) || t("director.splitSceneCard.notSet")}
+                  {getTriPrompt(scene.imagePromptZh, scene.imagePrompt, scene.imagePromptVi) || t("director.splitSceneCard.notSet")}
                 </span>
               </p>
-              {(scene.needsEndFrame || getPromptByLanguage(scene.endFramePromptZh, scene.endFramePrompt)) && (
+              {(scene.needsEndFrame || getTriPrompt(scene.endFramePromptZh, scene.endFramePrompt, scene.endFramePromptVi)) && (
                 <p className="text-[10px] truncate flex items-center gap-1.5">
                   <span className="shrink-0 inline-flex items-center gap-0.5 text-orange-600 dark:text-orange-400 font-medium">
                     ◉ {t("director.splitSceneCard.summaryEnd")}
                   </span>
                   <span className="text-orange-600/70 dark:text-orange-400/70">
-                    {getPromptByLanguage(scene.endFramePromptZh, scene.endFramePrompt) ||
+                    {getTriPrompt(scene.endFramePromptZh, scene.endFramePrompt, scene.endFramePromptVi) ||
                       t("director.splitSceneCard.notSet")}
                   </span>
                 </p>
@@ -1224,7 +1231,7 @@ export function SplitSceneCard({
                   <Play className="h-2.5 w-2.5" /> {t("director.splitSceneCard.summaryVideo")}
                 </span>
                 <span className="text-muted-foreground">
-                  {getPromptByLanguage(scene.videoPromptZh, scene.videoPrompt) || t("director.splitSceneCard.notSet")}
+                  {getTriPrompt(scene.videoPromptZh, scene.videoPrompt, scene.videoPromptVi) || t("director.splitSceneCard.notSet")}
                 {scene.cameraMovement && scene.cameraMovement !== 'none' && (
                     <span className="ml-1 text-green-500/50">[{CAMERA_MOVEMENT_PRESETS.find(p => p.id === scene.cameraMovement)?.label || scene.cameraMovement}]</span>
                   )}

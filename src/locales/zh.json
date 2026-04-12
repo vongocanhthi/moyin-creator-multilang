@@ -903,6 +903,7 @@
       "spatialLayout": "空间布局",
       "visualPrompt": "视觉提示词",
       "promptZhShort": "中文",
+      "promptViShort": "越南语",
       "multiViewBoard": "多视角联合图",
       "noViewpointsYet": "未分析视角（可选，AI校准分镜后自动生成）",
       "viewpointsAnalyzed": "AI 分析 {{count}} 个视角",
@@ -990,7 +991,7 @@
       "tabImport": "导入",
       "tabCreate": "创作",
       "pasteLabel": "粘贴完整剧本（包含大纲、人物小传、各集内容）",
-      "pastePlaceholder": "支持的格式：\\n• 第X集（集标记）\\n• **1-1日 内 地点**（场景头）\\n• 人物：角色A、角色B\\n• 角色名：（动作）台词\\n• △动作描写\\n• 【字幕】【闪回】等",
+      "pastePlaceholder": "支持的格式：\n• 第X集（集标记）\n• **1-1日 内 地点**（场景头）\n• 人物：角色A、角色B\n• 角色名：（动作）台词\n• △动作描写\n• 【字幕】【闪回】等",
       "importSuccess": "✓ 导入成功！可在右侧点击集名生成分镜",
       "missingTitlesShort": "⚠ {{count}} 集缺少标题，可使用AI校准生成",
       "importFailed": "导入失败：",
@@ -1032,7 +1033,9 @@
       "promptLang": {
         "zh": "仅中文",
         "en": "仅英文",
-        "zhEn": "中英文"
+        "vi": "仅越南语",
+        "zhEn": "中英文",
+        "viEn": "越南语 + 英文"
       },
       "duration": {
         "auto": "自动",
@@ -1068,7 +1071,8 @@
       "langScript": {
         "zh": "中文",
         "en": "English",
-        "ja": "日本語"
+        "ja": "日本語",
+        "vi": "越南语"
       },
       "apiNotConfigured": "API 未配置",
       "apiConfigureHint": "请在设置中配置API密钥",

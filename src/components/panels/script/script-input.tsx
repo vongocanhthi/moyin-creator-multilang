@@ -41,6 +41,19 @@ import { StylePicker } from "@/components/ui/style-picker";
 import type { PromptLanguage } from "@/types/script";
 import { useScriptStore } from "@/stores/script-store";
 
+/** Stored values for script content language (canonical English tokens; labels come from i18n). */
+const SCRIPT_LANGUAGE_VALUES = ["English", "Vietnamese", "Chinese", "Japanese"] as const;
+
+const SCRIPT_LANG_SCRIPT_KEY: Record<
+  (typeof SCRIPT_LANGUAGE_VALUES)[number],
+  "en" | "vi" | "zh" | "ja"
+> = {
+  English: "en",
+  Vietnamese: "vi",
+  Chinese: "zh",
+  Japanese: "ja",
+};
+
 interface ScriptInputProps {
   rawScript: string;
   language: string;
@@ -138,15 +151,28 @@ export function ScriptInput({
 
   const promptLanguageOptions = useMemo(
     () =>
-      (["zh", "en", "zh+en"] as const).map((value) => ({
+      (["en", "zh+en", "vi+en", "zh", "vi"] as const).map((value) => ({
         value,
         label: t(
           value === "zh+en"
             ? "scriptPanel.input.promptLang.zhEn"
-            : value === "zh"
-              ? "scriptPanel.input.promptLang.zh"
-              : "scriptPanel.input.promptLang.en"
+            : value === "vi+en"
+              ? "scriptPanel.input.promptLang.viEn"
+              : value === "zh"
+                ? "scriptPanel.input.promptLang.zh"
+                : value === "vi"
+                  ? "scriptPanel.input.promptLang.vi"
+                  : "scriptPanel.input.promptLang.en"
         ),
+      })),
+    [t]
+  );
+
+  const scriptLanguageOptions = useMemo(
+    () =>
+      SCRIPT_LANGUAGE_VALUES.map((value) => ({
+        value,
+        label: t(`scriptPanel.input.langScript.${SCRIPT_LANG_SCRIPT_KEY[value]}`),
       })),
     [t]
   );
@@ -533,9 +559,11 @@ export function ScriptInput({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="中文">{t("scriptPanel.input.langScript.zh")}</SelectItem>
-                  <SelectItem value="English">{t("scriptPanel.input.langScript.en")}</SelectItem>
-                  <SelectItem value="日本語">{t("scriptPanel.input.langScript.ja")}</SelectItem>
+                  {scriptLanguageOptions.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -705,9 +733,11 @@ export function ScriptInput({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="中文">{t("scriptPanel.input.langScript.zh")}</SelectItem>
-                    <SelectItem value="English">{t("scriptPanel.input.langScript.en")}</SelectItem>
-                    <SelectItem value="日本語">{t("scriptPanel.input.langScript.ja")}</SelectItem>
+                    {scriptLanguageOptions.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

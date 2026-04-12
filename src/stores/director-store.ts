@@ -109,6 +109,8 @@ export interface SplitScene {
   imagePrompt: string;
   // 棣栧抚鍥惧儚鎻愮ず璇嶏紙涓枃锛岀敤浜庣敤鎴锋樉绀?缂栬緫锛?
   imagePromptZh: string;
+  /** 越南语首帧提示（与 script Shot.imagePromptVi 对齐） */
+  imagePromptVi?: string;
   // 棣栧抚鐢熸垚鐘舵€?
   imageStatus: GenerationStatus;
   imageProgress: number; // 0-100
@@ -130,6 +132,7 @@ export interface SplitScene {
   endFramePrompt: string;
   // 灏惧抚鍥惧儚鎻愮ず璇嶏紙涓枃锛岀敤浜庣敤鎴锋樉绀?缂栬緫锛?
   endFramePromptZh: string;
+  endFramePromptVi?: string;
   // 灏惧抚鐢熸垚鐘舵€?
   endFrameStatus: GenerationStatus;
   endFrameProgress: number; // 0-100
@@ -142,6 +145,7 @@ export interface SplitScene {
   videoPrompt: string;
   // 瑙嗛鍔ㄤ綔鎻愮ず璇嶏紙涓枃锛岀敤浜庣敤鎴锋樉绀?缂栬緫锛?
   videoPromptZh: string;
+  videoPromptVi?: string;
   // 瑙嗛鐢熸垚鐘舵€?
   videoStatus: GenerationStatus;
   videoProgress: number; // 0-100
@@ -391,11 +395,11 @@ interface DirectorActions {
   setSplitScenes: (scenes: SplitScene[]) => void;
   
   // 棣栧抚鎻愮ず璇嶆洿鏂帮紙闈欐€佺敾闈㈡弿杩帮級
-  updateSplitSceneImagePrompt: (sceneId: number, prompt: string, promptZh?: string) => void;
+  updateSplitSceneImagePrompt: (sceneId: number, prompt: string, promptZh?: string, promptVi?: string) => void;
   // 瑙嗛鎻愮ず璇嶆洿鏂帮紙鍔ㄤ綔杩囩▼鎻忚堪锛?
-  updateSplitSceneVideoPrompt: (sceneId: number, prompt: string, promptZh?: string) => void;
+  updateSplitSceneVideoPrompt: (sceneId: number, prompt: string, promptZh?: string, promptVi?: string) => void;
   // 灏惧抚鎻愮ず璇嶆洿鏂帮紙闈欐€佺敾闈㈡弿杩帮級
-  updateSplitSceneEndFramePrompt: (sceneId: number, prompt: string, promptZh?: string) => void;
+  updateSplitSceneEndFramePrompt: (sceneId: number, prompt: string, promptZh?: string, promptVi?: string) => void;
   // 璁剧疆鏄惁闇€瑕佸熬甯?
   updateSplitSceneNeedsEndFrame: (sceneId: number, needsEndFrame: boolean) => void;
   // 鍏煎鏃?API锛氭洿鏂拌棰戞彁绀鸿瘝锛堝疄闄呬笂鏇存柊 videoPrompt锛?
@@ -1015,7 +1019,7 @@ export const useDirectorStore = create<DirectorStore>()(
   // ========== 涓夊眰鎻愮ず璇嶆洿鏂版柟娉?==========
   
   // 鏇存柊棣栧抚鎻愮ず璇嶏紙闈欐€佺敾闈㈡弿杩帮級
-  updateSplitSceneImagePrompt: (sceneId, prompt, promptZh) => {
+  updateSplitSceneImagePrompt: (sceneId, prompt, promptZh, promptVi) => {
     const { activeProjectId, projects } = get();
     if (!activeProjectId) return;
     const project = projects[activeProjectId];
@@ -1024,6 +1028,7 @@ export const useDirectorStore = create<DirectorStore>()(
         ...scene, 
         imagePrompt: prompt,
         imagePromptZh: promptZh !== undefined ? promptZh : scene.imagePromptZh,
+        imagePromptVi: promptVi !== undefined ? promptVi : scene.imagePromptVi,
       } : scene
     );
     set({
@@ -1035,7 +1040,7 @@ export const useDirectorStore = create<DirectorStore>()(
   },
   
   // 鏇存柊瑙嗛鎻愮ず璇嶏紙鍔ㄤ綔杩囩▼鎻忚堪锛?
-  updateSplitSceneVideoPrompt: (sceneId, prompt, promptZh) => {
+  updateSplitSceneVideoPrompt: (sceneId, prompt, promptZh, promptVi) => {
     const { activeProjectId, projects } = get();
     if (!activeProjectId) return;
     const project = projects[activeProjectId];
@@ -1044,6 +1049,7 @@ export const useDirectorStore = create<DirectorStore>()(
         ...scene, 
         videoPrompt: prompt,
         videoPromptZh: promptZh !== undefined ? promptZh : scene.videoPromptZh,
+        videoPromptVi: promptVi !== undefined ? promptVi : scene.videoPromptVi,
       } : scene
     );
     set({
@@ -1055,7 +1061,7 @@ export const useDirectorStore = create<DirectorStore>()(
   },
   
   // 鏇存柊灏惧抚鎻愮ず璇嶏紙闈欐€佺敾闈㈡弿杩帮級
-  updateSplitSceneEndFramePrompt: (sceneId, prompt, promptZh) => {
+  updateSplitSceneEndFramePrompt: (sceneId, prompt, promptZh, promptVi) => {
     const { activeProjectId, projects } = get();
     if (!activeProjectId) return;
     const project = projects[activeProjectId];
@@ -1064,6 +1070,7 @@ export const useDirectorStore = create<DirectorStore>()(
         ...scene, 
         endFramePrompt: prompt,
         endFramePromptZh: promptZh !== undefined ? promptZh : scene.endFramePromptZh,
+        endFramePromptVi: promptVi !== undefined ? promptVi : scene.endFramePromptVi,
       } : scene
     );
     set({

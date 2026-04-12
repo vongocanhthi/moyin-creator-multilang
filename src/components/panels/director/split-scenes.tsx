@@ -3661,9 +3661,9 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
                     key={scene.id}
                     scene={scene}
                     promptLanguage={promptLanguage}
-                    onUpdateImagePrompt={(id, prompt, promptZh) => updateSplitSceneImagePrompt(id, prompt, promptZh)}
-                    onUpdateVideoPrompt={(id, prompt, promptZh) => updateSplitSceneVideoPrompt(id, prompt, promptZh)}
-                    onUpdateEndFramePrompt={(id, prompt, promptZh) => updateSplitSceneEndFramePrompt(id, prompt, promptZh)}
+                    onUpdateImagePrompt={(id, prompt, promptZh, promptVi) => updateSplitSceneImagePrompt(id, prompt, promptZh, promptVi)}
+                    onUpdateVideoPrompt={(id, prompt, promptZh, promptVi) => updateSplitSceneVideoPrompt(id, prompt, promptZh, promptVi)}
+                    onUpdateEndFramePrompt={(id, prompt, promptZh, promptVi) => updateSplitSceneEndFramePrompt(id, prompt, promptZh, promptVi)}
                     onUpdateNeedsEndFrame={(id, needsEndFrame) => updateSplitSceneNeedsEndFrame(id, needsEndFrame)}
                     onUpdateEndFrame={handleUpdateEndFrame}
                     onUpdateCharacters={handleUpdateCharacters}
@@ -3994,9 +3994,9 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
             key={scene.id}
             scene={scene}
             promptLanguage={promptLanguage}
-            onUpdateImagePrompt={(id, prompt, promptZh) => updateSplitSceneImagePrompt(id, prompt, promptZh)}
-            onUpdateVideoPrompt={(id, prompt, promptZh) => updateSplitSceneVideoPrompt(id, prompt, promptZh)}
-            onUpdateEndFramePrompt={(id, prompt, promptZh) => updateSplitSceneEndFramePrompt(id, prompt, promptZh)}
+            onUpdateImagePrompt={(id, prompt, promptZh, promptVi) => updateSplitSceneImagePrompt(id, prompt, promptZh, promptVi)}
+            onUpdateVideoPrompt={(id, prompt, promptZh, promptVi) => updateSplitSceneVideoPrompt(id, prompt, promptZh, promptVi)}
+            onUpdateEndFramePrompt={(id, prompt, promptZh, promptVi) => updateSplitSceneEndFramePrompt(id, prompt, promptZh, promptVi)}
             onUpdateNeedsEndFrame={(id, needsEndFrame) => updateSplitSceneNeedsEndFrame(id, needsEndFrame)}
             onUpdateEndFrame={handleUpdateEndFrame}
             onUpdateCharacters={handleUpdateCharacters}

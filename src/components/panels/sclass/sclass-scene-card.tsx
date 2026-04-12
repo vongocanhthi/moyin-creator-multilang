@@ -80,13 +80,16 @@ import { SceneLibrarySelector } from "../director/scene-library-selector";
 import { MediaLibrarySelector } from "../director/media-library-selector";
 import { EditableTextField } from "../director/editable-text-field";
 import { useResolvedImageUrl } from "@/hooks/use-resolved-image-url";
+import type { PromptLanguage } from "@/types/script";
 
 export interface SplitSceneCardProps {
   scene: SplitScene;
+  /** 与剧本面板「提示词语言」一致，决定编辑/展示 zh / en / vi */
+  promptLanguage?: PromptLanguage;
   // 三层提示词更新回调
-  onUpdateImagePrompt: (id: number, prompt: string, promptZh?: string) => void;
-  onUpdateVideoPrompt: (id: number, prompt: string, promptZh?: string) => void;
-  onUpdateEndFramePrompt: (id: number, prompt: string, promptZh?: string) => void;
+  onUpdateImagePrompt: (id: number, prompt: string, promptZh?: string, promptVi?: string) => void;
+  onUpdateVideoPrompt: (id: number, prompt: string, promptZh?: string, promptVi?: string) => void;
+  onUpdateEndFramePrompt: (id: number, prompt: string, promptZh?: string, promptVi?: string) => void;
   onUpdateNeedsEndFrame: (id: number, needsEndFrame: boolean) => void;
   onUpdateEndFrame: (id: number, imageUrl: string | null) => void;
   onUpdateCharacters: (id: number, characterIds: string[]) => void;
@@ -125,7 +128,8 @@ export interface SplitSceneCardProps {
 }
 
 export function SClassSceneCard({
-  scene, 
+  scene,
+  promptLanguage = "en",
   onUpdateImagePrompt,
   onUpdateVideoPrompt,
   onUpdateEndFramePrompt,
@@ -178,28 +182,61 @@ export function SClassSceneCard({
   const resolvedImageUrl = useResolvedImageUrl(effectiveImageUrl);
   const resolvedEndFrameUrl = useResolvedImageUrl(effectiveEndFrameUrl);
 
+  const getTriPrompt = (zh: string | undefined, en: string | undefined, vi: string | undefined): string => {
+    if (promptLanguage === "en") return en || "";
+    if (promptLanguage === "zh") return zh || "";
+    if (promptLanguage === "vi") return vi || "";
+    if (promptLanguage === "zh+en") return zh || en || "";
+    if (promptLanguage === "vi+en") return vi || en || "";
+    return zh || en || "";
+  };
+
+  const hasImagePromptLayer = !!(scene.imagePromptZh || scene.imagePrompt || scene.imagePromptVi);
+  const hasEndFramePromptLayer = !!(scene.endFramePromptZh || scene.endFramePrompt || scene.endFramePromptVi);
+  const hasVideoPromptLayer = !!(scene.videoPromptZh || scene.videoPrompt || scene.videoPromptVi);
+
   // 开始编辑某个提示词
   const startEditing = (type: 'image' | 'video' | 'endFrame') => {
     if (type === 'image') {
-      setEditPromptValue(scene.imagePromptZh || scene.imagePrompt || '');
+      setEditPromptValue(getTriPrompt(scene.imagePromptZh, scene.imagePrompt, scene.imagePromptVi));
     } else if (type === 'video') {
-      setEditPromptValue(scene.videoPromptZh || scene.videoPrompt || '');
+      setEditPromptValue(getTriPrompt(scene.videoPromptZh, scene.videoPrompt, scene.videoPromptVi));
     } else {
-      setEditPromptValue(scene.endFramePromptZh || scene.endFramePrompt || '');
+      setEditPromptValue(getTriPrompt(scene.endFramePromptZh, scene.endFramePrompt, scene.endFramePromptVi));
     }
     setEditingPrompt(type);
   };
 
-  // 保存提示词
+  // 保存提示词（按 promptLanguage 只更新对应层）
   const handleSavePrompt = () => {
+    const isEn = promptLanguage === "en";
+
     if (editingPrompt === 'image') {
-      onUpdateImagePrompt(scene.id, scene.imagePrompt, editPromptValue);
+      if (promptLanguage === "vi" || promptLanguage === "vi+en") {
+        onUpdateImagePrompt(scene.id, scene.imagePrompt, scene.imagePromptZh, editPromptValue);
+      } else if (isEn) {
+        onUpdateImagePrompt(scene.id, editPromptValue, scene.imagePromptZh, scene.imagePromptVi);
+      } else {
+        onUpdateImagePrompt(scene.id, scene.imagePrompt, editPromptValue, scene.imagePromptVi);
+      }
       toast.success(`分镜 ${scene.id + 1} 首帧提示词已更新`);
     } else if (editingPrompt === 'video') {
-      onUpdateVideoPrompt(scene.id, scene.videoPrompt, editPromptValue);
+      if (promptLanguage === "vi" || promptLanguage === "vi+en") {
+        onUpdateVideoPrompt(scene.id, scene.videoPrompt, scene.videoPromptZh, editPromptValue);
+      } else if (isEn) {
+        onUpdateVideoPrompt(scene.id, editPromptValue, scene.videoPromptZh, scene.videoPromptVi);
+      } else {
+        onUpdateVideoPrompt(scene.id, scene.videoPrompt, editPromptValue, scene.videoPromptVi);
+      }
       toast.success(`分镜 ${scene.id + 1} 视频提示词已更新`);
     } else if (editingPrompt === 'endFrame') {
-      onUpdateEndFramePrompt(scene.id, scene.endFramePrompt, editPromptValue);
+      if (promptLanguage === "vi" || promptLanguage === "vi+en") {
+        onUpdateEndFramePrompt(scene.id, scene.endFramePrompt, scene.endFramePromptZh, editPromptValue);
+      } else if (isEn) {
+        onUpdateEndFramePrompt(scene.id, editPromptValue, scene.endFramePromptZh, scene.endFramePromptVi);
+      } else {
+        onUpdateEndFramePrompt(scene.id, scene.endFramePrompt, editPromptValue, scene.endFramePromptVi);
+      }
       toast.success(`分镜 ${scene.id + 1} 尾帧提示词已更新`);
     }
     setEditingPrompt('none');
@@ -895,7 +932,7 @@ export function SClassSceneCard({
               </span>
               <span className={cn(
                 "text-[9px] px-1.5 py-0.5 rounded-full inline-flex items-center gap-0.5 border",
-                (scene.imagePromptZh || scene.imagePrompt)
+                hasImagePromptLayer
                   ? "bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/20"
                   : "bg-muted text-muted-foreground/40 border-transparent"
               )}>
@@ -903,7 +940,7 @@ export function SClassSceneCard({
               </span>
               <span className={cn(
                 "text-[9px] px-1.5 py-0.5 rounded-full inline-flex items-center gap-0.5 border",
-                (scene.endFramePromptZh || scene.endFramePrompt)
+                hasEndFramePromptLayer
                   ? "bg-orange-500/15 text-orange-600 dark:text-orange-400 border-orange-500/20"
                   : scene.needsEndFrame
                     ? "bg-orange-500/5 text-orange-400/60 border-dashed border-orange-400/30"
@@ -913,7 +950,7 @@ export function SClassSceneCard({
               </span>
               <span className={cn(
                 "text-[9px] px-1.5 py-0.5 rounded-full inline-flex items-center gap-0.5 border",
-                (scene.videoPromptZh || scene.videoPrompt)
+                hasVideoPromptLayer
                   ? "bg-green-500/15 text-green-600 dark:text-green-400 border-green-500/20"
                   : "bg-muted text-muted-foreground/40 border-transparent"
               )}>
@@ -972,7 +1009,7 @@ export function SClassSceneCard({
                     onClick={() => !isGeneratingAny && startEditing('image')}
                   >
                     <p className="text-[11px] text-muted-foreground flex-1 line-clamp-2 min-h-[1.5em]">
-                      {scene.imagePromptZh || scene.imagePrompt || "点击添加首帧描述..."}
+                      {getTriPrompt(scene.imagePromptZh, scene.imagePrompt, scene.imagePromptVi) || "点击添加首帧描述..."}
                     </p>
                     {!isGeneratingAny && <Edit3 className="h-2.5 w-2.5 text-blue-500/50 shrink-0 mt-0.5" />}
                   </div>
@@ -1017,7 +1054,7 @@ export function SClassSceneCard({
                       "text-[11px] flex-1 line-clamp-2 min-h-[1.5em]",
                       "text-orange-600 dark:text-orange-400"
                     )}>
-                      {scene.endFramePromptZh || scene.endFramePrompt || (scene.needsEndFrame ? "点击添加尾帧描述..." : "点击添加尾帧描述...（可选）")}
+                      {getTriPrompt(scene.endFramePromptZh, scene.endFramePrompt, scene.endFramePromptVi) || (scene.needsEndFrame ? "点击添加尾帧描述..." : "点击添加尾帧描述...（可选）")}
                     </p>
                     {!isGeneratingAny && <Edit3 className="h-2.5 w-2.5 text-orange-500/50 shrink-0 mt-0.5" />}
                   </div>
@@ -1055,7 +1092,7 @@ export function SClassSceneCard({
                     onClick={() => !isGeneratingAny && startEditing('video')}
                   >
                     <p className="text-[11px] text-green-600 dark:text-green-400 flex-1 line-clamp-2 min-h-[1.5em]">
-                      {scene.videoPromptZh || scene.videoPrompt || "点击添加动作描述..."}
+                      {getTriPrompt(scene.videoPromptZh, scene.videoPrompt, scene.videoPromptVi) || "点击添加动作描述..."}
                     </p>
                     {!isGeneratingAny && <Edit3 className="h-2.5 w-2.5 text-green-500/50 shrink-0 mt-0.5" />}
                   </div>
@@ -1078,14 +1115,14 @@ export function SClassSceneCard({
                 <span className="shrink-0 inline-flex items-center gap-0.5 text-blue-600 dark:text-blue-400 font-medium">
                   <ImageIcon className="h-2.5 w-2.5" /> 首帧:
                 </span>
-                <span className="text-muted-foreground">{scene.imagePromptZh || scene.imagePrompt || '未设置'}</span>
+                <span className="text-muted-foreground">{getTriPrompt(scene.imagePromptZh, scene.imagePrompt, scene.imagePromptVi) || '未设置'}</span>
               </p>
-              {(scene.needsEndFrame || scene.endFramePromptZh || scene.endFramePrompt) && (
+              {(scene.needsEndFrame || hasEndFramePromptLayer) && (
                 <p className="text-[10px] truncate flex items-center gap-1.5">
                   <span className="shrink-0 inline-flex items-center gap-0.5 text-orange-600 dark:text-orange-400 font-medium">
                     ◉ 尾帧:
                   </span>
-                  <span className="text-orange-600/70 dark:text-orange-400/70">{scene.endFramePromptZh || scene.endFramePrompt || '未设置'}</span>
+                  <span className="text-orange-600/70 dark:text-orange-400/70">{getTriPrompt(scene.endFramePromptZh, scene.endFramePrompt, scene.endFramePromptVi) || '未设置'}</span>
                 </p>
               )}
               <p className="text-[10px] truncate flex items-center gap-1.5">
@@ -1093,7 +1130,7 @@ export function SClassSceneCard({
                   <Play className="h-2.5 w-2.5" /> 视频:
                 </span>
                 <span className="text-muted-foreground">
-                  {scene.videoPromptZh || scene.videoPrompt || '未设置'}
+                  {getTriPrompt(scene.videoPromptZh, scene.videoPrompt, scene.videoPromptVi) || '未设置'}
                 {scene.cameraMovement && scene.cameraMovement !== 'none' && (
                     <span className="ml-1 text-green-500/50">[{CAMERA_MOVEMENT_PRESETS.find(p => p.id === scene.cameraMovement)?.label || scene.cameraMovement}]</span>
                   )}

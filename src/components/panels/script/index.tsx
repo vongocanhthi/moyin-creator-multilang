@@ -50,6 +50,11 @@ import {
   extractAllCharactersFromEpisodes,
   resolveSafeScriptCharacters,
 } from "@/lib/script/character-calibrator";
+import {
+  promptLangIncludesEn,
+  promptLangIncludesVi,
+  promptLangIncludesZh,
+} from "@/lib/script/prompt-language-utils";
 import { findCharacterByDescription } from "@/lib/script/ai-character-finder";
 import { findSceneByDescription } from "@/lib/script/ai-scene-finder";
 import {
@@ -1126,13 +1131,14 @@ export function ScriptView() {
                   },
                   consistencyElements: analysis.consistencyElements,
                   // 专业视觉提示词
-                  visualPromptEn: promptLanguage === 'zh' ? undefined : [
+                  visualPromptEn: promptLangIncludesEn(promptLanguage) ? [
                     analysis.consistencyElements.facialFeatures,
                     analysis.consistencyElements.bodyType,
                     analysis.consistencyElements.uniqueMarks,
                     stage.visualPromptEn,
-                  ].filter(Boolean).join(', '),
-                  visualPromptZh: promptLanguage === 'en' ? undefined : stage.visualPromptZh,
+                  ].filter(Boolean).join(', ') : undefined,
+                  visualPromptZh: promptLangIncludesZh(promptLanguage) ? stage.visualPromptZh : undefined,
+                  visualPromptVi: promptLangIncludesVi(promptLanguage) ? (stage as { visualPromptVi?: string }).visualPromptVi : undefined,
                   // === 继承基础角色的6层身份锚点 ===
                   identityAnchors: baseChar.identityAnchors,
                   negativePrompt: baseChar.negativePrompt,
@@ -2059,6 +2065,7 @@ export function ScriptView() {
         // 【关键】只更新美术设计字段，保留所有原有数据（包括 viewpoints）
         const nextVisualPromptZh = calibrated.visualPromptZh || orig.visualPrompt;
         const nextVisualPromptEn = calibrated.visualPromptEn || orig.visualPromptEn;
+        const nextVisualPromptVi = calibrated.visualPromptVi || orig.visualPromptVi;
         return {
           ...orig,  // 保留所有原有字段（id, name, location, viewpoints, sceneIds 等）
           // 只更新美术设计字段
@@ -2071,8 +2078,9 @@ export function ScriptView() {
           atmosphere: calibrated.atmosphere || orig.atmosphere,
           importance: calibrated.importance || (orig as any).importance || 'secondary',
           // 视觉提示词
-          visualPrompt: promptLanguage === 'en' ? undefined : nextVisualPromptZh,
-          visualPromptEn: promptLanguage === 'zh' ? undefined : nextVisualPromptEn,
+          visualPrompt: promptLangIncludesZh(promptLanguage) ? nextVisualPromptZh : undefined,
+          visualPromptEn: promptLangIncludesEn(promptLanguage) ? nextVisualPromptEn : undefined,
+          visualPromptVi: promptLangIncludesVi(promptLanguage) ? nextVisualPromptVi : undefined,
           // viewpoints 保持不变（已通过 ...orig 保留）
         };
       });

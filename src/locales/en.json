@@ -903,6 +903,7 @@
       "spatialLayout": "Spatial layout",
       "visualPrompt": "Visual prompt",
       "promptZhShort": "Chinese",
+      "promptViShort": "Vietnamese",
       "multiViewBoard": "Multi-view board",
       "noViewpointsYet": "No viewpoint analysis yet (optional; generated after AI shot calibration).",
       "viewpointsAnalyzed": "AI analyzed {{count}} viewpoint(s)",
@@ -990,7 +991,7 @@
       "tabImport": "Import",
       "tabCreate": "Create",
       "pasteLabel": "Paste full script (outline, bios, episodes)",
-      "pastePlaceholder": "Supported markers:\\n• Episode: 第X集\\n• Scene: **1-1 day int. location**\\n• Cast: 人物：A、B\\n• Dialogue: Name: line\\n• △ stage direction\\n• 【字幕】 etc.",
+      "pastePlaceholder": "Supported markers:\n• Episode: Episode X — title (or EP.1)\n• Scene: **1-1 day int. location**\n• Cast: A, B\n• Dialogue: Name: line\n• △ stage direction\n• [Subtitles] or similar notes",
       "importSuccess": "Imported. Open an episode in the center column to generate shots.",
       "missingTitlesShort": "{{count}} episode(s) missing titles — use AI calibration",
       "importFailed": "Import failed:",
@@ -1032,7 +1033,9 @@
       "promptLang": {
         "zh": "Chinese only",
         "en": "English only",
-        "zhEn": "Chinese + English"
+        "vi": "Vietnamese only",
+        "zhEn": "Chinese + English",
+        "viEn": "Vietnamese + English"
       },
       "duration": {
         "auto": "Auto",
@@ -1068,7 +1071,8 @@
       "langScript": {
         "zh": "Chinese",
         "en": "English",
-        "ja": "Japanese"
+        "ja": "Japanese",
+        "vi": "Vietnamese"
       },
       "apiNotConfigured": "API not configured",
       "apiConfigureHint": "Add an API key in Settings.",

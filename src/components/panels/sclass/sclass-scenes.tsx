@@ -24,6 +24,7 @@ import {
   SHOT_SIZE_PRESETS,
   SOUND_EFFECT_PRESETS,
 } from "@/stores/director-store";
+import { useScriptStore } from "@/stores/script-store";
 import { useCharacterLibraryStore } from "@/stores/character-library-store";
 import { 
   ArrowLeft, 
@@ -231,6 +232,13 @@ export function SClassScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
     // 摄影风格档案
     setCinematographyProfileId,
   } = useDirectorStore();
+
+  const promptLanguage =
+    useScriptStore((state) => {
+      const pid = state.activeProjectId;
+      return pid ? state.projects[pid]?.promptLanguage : undefined;
+    }) || "en";
+
   const mediaProjectId = activeProjectId || undefined;
 
   // ========== S级分组状态 ==========
@@ -3172,9 +3180,10 @@ export function SClassScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
                   <SceneCard
                     key={scene.id}
                     scene={scene}
-                    onUpdateImagePrompt={(id, prompt, promptZh) => updateSplitSceneImagePrompt(id, prompt, promptZh)}
-                    onUpdateVideoPrompt={(id, prompt, promptZh) => updateSplitSceneVideoPrompt(id, prompt, promptZh)}
-                    onUpdateEndFramePrompt={(id, prompt, promptZh) => updateSplitSceneEndFramePrompt(id, prompt, promptZh)}
+                    promptLanguage={promptLanguage}
+                    onUpdateImagePrompt={(id, prompt, promptZh, promptVi) => updateSplitSceneImagePrompt(id, prompt, promptZh, promptVi)}
+                    onUpdateVideoPrompt={(id, prompt, promptZh, promptVi) => updateSplitSceneVideoPrompt(id, prompt, promptZh, promptVi)}
+                    onUpdateEndFramePrompt={(id, prompt, promptZh, promptVi) => updateSplitSceneEndFramePrompt(id, prompt, promptZh, promptVi)}
                     onUpdateNeedsEndFrame={(id, needsEndFrame) => updateSplitSceneNeedsEndFrame(id, needsEndFrame)}
                     onUpdateEndFrame={handleUpdateEndFrame}
                     onUpdateCharacters={handleUpdateCharacters}
@@ -3592,9 +3601,10 @@ export function SClassScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
                 renderSceneCard={(scene) => (
                   <SceneCard
                     scene={scene}
-                    onUpdateImagePrompt={(id, prompt, promptZh) => updateSplitSceneImagePrompt(id, prompt, promptZh)}
-                    onUpdateVideoPrompt={(id, prompt, promptZh) => updateSplitSceneVideoPrompt(id, prompt, promptZh)}
-                    onUpdateEndFramePrompt={(id, prompt, promptZh) => updateSplitSceneEndFramePrompt(id, prompt, promptZh)}
+                    promptLanguage={promptLanguage}
+                    onUpdateImagePrompt={(id, prompt, promptZh, promptVi) => updateSplitSceneImagePrompt(id, prompt, promptZh, promptVi)}
+                    onUpdateVideoPrompt={(id, prompt, promptZh, promptVi) => updateSplitSceneVideoPrompt(id, prompt, promptZh, promptVi)}
+                    onUpdateEndFramePrompt={(id, prompt, promptZh, promptVi) => updateSplitSceneEndFramePrompt(id, prompt, promptZh, promptVi)}
                     onUpdateNeedsEndFrame={(id, needsEndFrame) => updateSplitSceneNeedsEndFrame(id, needsEndFrame)}
                     onUpdateEndFrame={handleUpdateEndFrame}
                     onUpdateCharacters={handleUpdateCharacters}
@@ -3637,9 +3647,10 @@ export function SClassScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
             <SceneCard
               key={scene.id}
               scene={scene}
-              onUpdateImagePrompt={(id, prompt, promptZh) => updateSplitSceneImagePrompt(id, prompt, promptZh)}
-              onUpdateVideoPrompt={(id, prompt, promptZh) => updateSplitSceneVideoPrompt(id, prompt, promptZh)}
-              onUpdateEndFramePrompt={(id, prompt, promptZh) => updateSplitSceneEndFramePrompt(id, prompt, promptZh)}
+              promptLanguage={promptLanguage}
+              onUpdateImagePrompt={(id, prompt, promptZh, promptVi) => updateSplitSceneImagePrompt(id, prompt, promptZh, promptVi)}
+              onUpdateVideoPrompt={(id, prompt, promptZh, promptVi) => updateSplitSceneVideoPrompt(id, prompt, promptZh, promptVi)}
+              onUpdateEndFramePrompt={(id, prompt, promptZh, promptVi) => updateSplitSceneEndFramePrompt(id, prompt, promptZh, promptVi)}
               onUpdateNeedsEndFrame={(id, needsEndFrame) => updateSplitSceneNeedsEndFrame(id, needsEndFrame)}
               onUpdateEndFrame={handleUpdateEndFrame}
               onUpdateCharacters={handleUpdateCharacters}
