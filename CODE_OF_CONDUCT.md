@@ -42,8 +42,8 @@ an individual is officially representing the community in public spaces.
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported to the community leaders responsible for enforcement at
-**memecalculate@gmail.com**.
+reported to the community leaders responsible for enforcement via
+[GitHub Issues](https://github.com/vongocanhthi/moyin-creator-multilang/issues) (use a clear title and appropriate visibility).
 
 All complaints will be reviewed and investigated promptly and fairly.
 

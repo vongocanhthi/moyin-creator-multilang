@@ -6,6 +6,8 @@
  * Based on AionUi's ApiKeyManager pattern
  */
 
+import { MEMEFAST_API_ORIGIN } from "@/constants/memefast";
+
 // ==================== Types ====================
 
 export type ModelCapability = 
@@ -41,7 +43,7 @@ export const DEFAULT_PROVIDERS: Omit<IProvider, 'id' | 'apiKey'>[] = [
   {
     platform: 'memefast',
     name: '魔因API',
-    baseUrl: 'https://memefast.top',
+    baseUrl: MEMEFAST_API_ORIGIN,
     model: [
       'deepseek-v3.2',
       'glm-4.7',

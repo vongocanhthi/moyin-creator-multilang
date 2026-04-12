@@ -98,6 +98,8 @@ import {
 import { UpdateDialog } from "@/components/UpdateDialog";
 import type { AvailableUpdateInfo } from "@/types/update";
 import packageJson from "../../../package.json";
+import { INDEXEDDB_APP_DB_NAME } from "@/constants/storage";
+import { MEMEFAST_PORTAL_URL } from "@/constants/memefast";
 
 // Platform icon mapping
 const PLATFORM_ICONS: Record<string, React.ReactNode> = {
@@ -491,7 +493,7 @@ export function SettingsPanel() {
       
       // 清除 IndexedDB 缓存
       try {
-        const dbRequest = indexedDB.open('moyin-creator-db', 1);
+        const dbRequest = indexedDB.open(INDEXEDDB_APP_DB_NAME, 1);
         dbRequest.onsuccess = () => {
           const db = dbRequest.result;
           if (db.objectStoreNames.contains('zustand-storage')) {
@@ -537,7 +539,7 @@ export function SettingsPanel() {
       
       // 清除 IndexedDB 缓存
       try {
-        const dbRequest = indexedDB.open('moyin-creator-db', 1);
+        const dbRequest = indexedDB.open(INDEXEDDB_APP_DB_NAME, 1);
         dbRequest.onsuccess = () => {
           const db = dbRequest.result;
           if (db.objectStoreNames.contains('zustand-storage')) {
@@ -591,7 +593,7 @@ export function SettingsPanel() {
       
       // 清除 IndexedDB 缓存
       try {
-        const dbRequest = indexedDB.open('moyin-creator-db', 1);
+        const dbRequest = indexedDB.open(INDEXEDDB_APP_DB_NAME, 1);
         dbRequest.onsuccess = () => {
           const db = dbRequest.result;
           if (db.objectStoreNames.contains('zustand-storage')) {
@@ -738,7 +740,7 @@ export function SettingsPanel() {
 
           {/* MemeFast 购买引导 */}
           <a
-            href="https://memefast.top"
+            href={MEMEFAST_PORTAL_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-3 p-4 bg-gradient-to-r from-orange-500/5 to-primary/5 border border-orange-500/20 rounded-lg hover:border-orange-500/40 transition-colors group"
@@ -783,7 +785,7 @@ export function SettingsPanel() {
                   {t("settings.api.emptyProvidersHint")}
                 </p>
                 <a
-                  href="https://memefast.top"
+                  href={MEMEFAST_PORTAL_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline mb-4"
@@ -990,7 +992,7 @@ export function SettingsPanel() {
                         {provider.platform === 'memefast' && !configured && (
                           <div className="px-4 pb-2">
                             <a
-                              href="https://memefast.top"
+                              href={MEMEFAST_PORTAL_URL}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline"

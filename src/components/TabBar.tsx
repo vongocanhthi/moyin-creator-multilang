@@ -3,7 +3,9 @@
 // Commercial licensing available. See COMMERCIAL_LICENSE.md.
 import { useTranslation } from "react-i18next";
 import { mainNavItems, bottomNavItems, type Tab, useMediaPanelStore } from "@/stores/media-panel-store";
+import { useAppSettingsStore } from "@/stores/app-settings-store";
 import { useThemeStore } from "@/stores/theme-store";
+import { getWorkflowGuideDocUrl } from "@/lib/i18n/workflow-guide-url";
 import { cn } from "@/lib/utils";
 import {
   Tooltip,
@@ -15,6 +17,8 @@ import { ChevronLeft, LayoutDashboard, Settings, Sun, Moon, HelpCircle } from "l
 
 export function TabBar() {
   const { t } = useTranslation();
+  const locale = useAppSettingsStore((s) => s.locale);
+  const workflowGuideHref = getWorkflowGuideDocUrl(locale);
   const { activeTab, inProject, setActiveTab, setInProject } = useMediaPanelStore();
   const { theme, toggleTheme } = useThemeStore();
 
@@ -57,7 +61,7 @@ export function TabBar() {
             <Tooltip>
               <TooltipTrigger asChild>
                 <a
-                  href="https://github.com/MemeCalculate/moyin-creator/blob/main/docs/WORKFLOW_GUIDE.md"
+                  href={workflowGuideHref}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full flex flex-col items-center py-2 text-muted-foreground hover:text-foreground transition-colors"
@@ -174,7 +178,7 @@ export function TabBar() {
           <Tooltip>
             <TooltipTrigger asChild>
               <a
-                href="https://github.com/MemeCalculate/moyin-creator/blob/main/docs/WORKFLOW_GUIDE.md"
+                href={workflowGuideHref}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full flex flex-col items-center py-2 text-muted-foreground hover:text-foreground transition-colors"

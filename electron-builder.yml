@@ -1,4 +1,4 @@
-appId: com.manju2026.moyin-creator
+appId: com.manju2026.moyin-creator-multilang
 productName: 魔因漫创
 directories:
   buildResources: build
@@ -33,7 +33,7 @@ mac:
     - zip
 
 win:
-  executableName: moyin-creator
+  executableName: moyin-creator-multilang
   icon: build/icon.ico
   forceCodeSigning: false
   target:

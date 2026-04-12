@@ -9,7 +9,7 @@ import { UpdateDialog } from "@/components/UpdateDialog";
 import { useThemeStore } from "@/stores/theme-store";
 import { useAPIConfigStore } from "@/stores/api-config-store";
 import { useAppSettingsStore } from "@/stores/app-settings-store";
-import { setAppLanguage } from "@/i18n/i18n";
+import i18n from "@/i18n/i18n";
 import { parseApiKeys } from "@/lib/api-key-manager";
 import { Loader2 } from "lucide-react";
 import { migrateToProjectStorage, recoverFromLegacy } from "@/lib/storage-migration";
@@ -87,7 +87,10 @@ function App() {
   useEffect(() => {
     if (isMigrating) return;
     document.documentElement.lang = locale;
-    setAppLanguage(locale);
+    void i18n.changeLanguage(locale).then(() => {
+      document.title = i18n.t("app.windowTitle");
+      window.ipcRenderer?.send("set-window-title", document.title);
+    });
   }, [isMigrating, locale]);
 
   useEffect(() => {

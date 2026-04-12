@@ -144,4 +144,4 @@ S级板块支持 **Seedance 2.0** 的多镜头合并叙事功能：
 
 ---
 
-> 📧 有问题？联系 [memecalculate@gmail.com](mailto:memecalculate@gmail.com) 或查看 [README](../README.md)
+> 有问题？查看 [README](../README.md)

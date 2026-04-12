@@ -39,8 +39,7 @@
 
 如需商业许可或有任何疑问，请通过以下方式联系：
 
-- 📧 Email: [memecalculate@gmail.com](mailto:memecalculate@gmail.com)
-- 🐙 GitHub: [https://github.com/hotflow2024/moyin-creator/issues](https://github.com/hotflow2024/moyin-creator/issues)
+- 🐙 GitHub Issues: [https://github.com/vongocanhthi/moyin-creator-multilang/issues](https://github.com/vongocanhthi/moyin-creator-multilang/issues)
 
 ---
 

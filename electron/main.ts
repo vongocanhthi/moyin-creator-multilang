@@ -159,7 +159,7 @@ async function resolveAvailableUpdate(currentVersion: string): Promise<Available
 
 function createWindow() {
   win = new BrowserWindow({
-    title: '魔因漫创',
+    title: 'Moyin Creator',
     width: 1400,
     height: 900,
     minWidth: 1200,
@@ -814,6 +814,12 @@ async function uploadImageHostFromMain({
     return { success: false, error: error instanceof Error ? error.message : '上传失败' }
   }
 }
+
+ipcMain.on('set-window-title', (_event, title: unknown) => {
+  if (typeof title !== 'string' || !title.trim()) return
+  const browserWindow = BrowserWindow.fromWebContents(_event.sender) ?? win
+  browserWindow?.setTitle(title.trim())
+})
 
 // IPC handlers for image management
 ipcMain.handle('save-image', async (_event, { url, category, filename }) => {

@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import type { IProvider } from "@/lib/api-key-manager";
+import { MEMEFAST_API_ORIGIN } from "@/constants/memefast";
 
 /**
  * 平台预设配置
@@ -48,7 +49,7 @@ const PLATFORM_PRESETS: Array<{
   {
     platform: "memefast",
     name: "魔因API",
-    baseUrl: "https://memefast.top",
+    baseUrl: MEMEFAST_API_ORIGIN,
     description: "543+ 模型中转，支持 GPT/Claude/Gemini/DeepSeek/Veo/Sora 等",
     services: ["对话", "图片生成", "视频生成", "图片理解"],
     models: [

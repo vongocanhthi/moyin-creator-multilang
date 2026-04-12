@@ -14,8 +14,8 @@
 
 ```bash
 # 克隆仓库
-git clone https://github.com/hotflow2024/moyin-creator.git
-cd moyin-creator
+git clone https://github.com/vongocanhthi/moyin-creator-multilang.git
+cd moyin-creator-multilang
 
 # 安装依赖
 npm install
@@ -27,7 +27,7 @@ npm run dev
 ### 项目结构
 
 ```
-moyin-creator/
+moyin-creator-multilang/
 ├── electron/          # Electron 主进程 + Preload
 ├── src/
 │   ├── components/    # React UI 组件
@@ -89,9 +89,9 @@ npx electron-vite build
 
 ## 问题反馈
 
-- 🐛 Bug 报告：[GitHub Issues](https://github.com/hotflow2024/moyin-creator/issues)
-- 💡 功能建议：[GitHub Issues](https://github.com/hotflow2024/moyin-creator/issues)
-- 💬 讨论交流：[GitHub Discussions](https://github.com/hotflow2024/moyin-creator/discussions)
+- 🐛 Bug 报告：[GitHub Issues](https://github.com/vongocanhthi/moyin-creator-multilang/issues)
+- 💡 功能建议：[GitHub Issues](https://github.com/vongocanhthi/moyin-creator-multilang/issues)
+- 💬 讨论交流：[GitHub Discussions](https://github.com/vongocanhthi/moyin-creator-multilang/discussions)
 
 ## 行为准则
 

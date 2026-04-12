@@ -42,7 +42,7 @@ function Stop-ProcessTree {
 
 $processIds = New-Object "System.Collections.Generic.HashSet[int]"
 
-foreach ($process in Get-Process -Name "moyin-creator", "魔因漫创" -ErrorAction SilentlyContinue) {
+foreach ($process in Get-Process -Name "moyin-creator-multilang", "魔因漫创" -ErrorAction SilentlyContinue) {
   $null = $processIds.Add([int]$process.Id)
 }
 
@@ -51,7 +51,7 @@ foreach ($process in Get-CimInstance Win32_Process -ErrorAction SilentlyContinue
   $name = $process.Name
   if (
     (Test-IsPathUnderDirectory -Path $exePath -Directory $normalizedBuilderOutputDir) -or
-    (($name -and $name -like "moyin-creator-*-setup.exe") -and (Test-IsPathUnderDirectory -Path $exePath -Directory $normalizedReleaseDir))
+    (($name -and $name -like "moyin-creator-multilang-*-setup.exe") -and (Test-IsPathUnderDirectory -Path $exePath -Directory $normalizedReleaseDir))
   ) {
     $null = $processIds.Add([int]$process.ProcessId)
   }

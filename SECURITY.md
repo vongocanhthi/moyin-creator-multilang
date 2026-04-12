@@ -10,12 +10,12 @@
 
 If you discover a security vulnerability, please report it responsibly:
 
-1. **DO NOT** open a public GitHub issue
-2. Send an email to **memecalculate@gmail.com** with:
+1. **DO NOT** open a public GitHub issue for undisclosed vulnerabilities
+2. Report privately via **[GitHub Security Advisories](https://github.com/vongocanhthi/moyin-creator-multilang/security/advisories/new)** (repository **Security** tab), including:
    - Description of the vulnerability
    - Steps to reproduce
    - Potential impact assessment
-3. You will receive a response within **72 hours**
+3. You should receive a response within **72 hours**
 
 ## Disclosure Policy
 

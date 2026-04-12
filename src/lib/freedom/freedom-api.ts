@@ -4,7 +4,7 @@
 
 /**
  * Freedom Panel API Client
- * Wraps moyin-creator's existing AI infrastructure for single-shot generation
+ * Wraps moyin-creator-multilang AI infrastructure for single-shot generation
  * Features: smart endpoint routing, retry with exponential backoff
  */
 

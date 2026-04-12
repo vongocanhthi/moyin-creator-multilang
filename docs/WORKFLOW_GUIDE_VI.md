@@ -144,4 +144,4 @@ Hạng S hỗ trợ **Seedance 2.0** — gộp nhiều shot kể chuyện liền
 
 ---
 
-> 📧 Thắc mắc? Liên hệ [memecalculate@gmail.com](mailto:memecalculate@gmail.com) hoặc xem [README](../README.md)
+> Thắc mắc? Xem [README](../README.md)

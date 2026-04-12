@@ -144,4 +144,4 @@ S-Class supports **Seedance 2.0** multi-shot merged storytelling:
 
 ---
 
-> 📧 Questions? Email [memecalculate@gmail.com](mailto:memecalculate@gmail.com) or see [README](../README.md)
+> Questions? See [README](../README.md)
