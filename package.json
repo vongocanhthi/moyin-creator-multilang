@@ -1,8 +1,8 @@
 {
   "name": "moyin-creator-multilang",
-  "productName": "魔因漫创",
+  "productName": "Moyin Creator (Multilang)",
   "version": "0.2.5",
-  "description": "AI 驱动的动漫/短剧分镜创作工具",
+  "description": "AI-powered anime & short-drama storyboard creation tool",
   "author": "MemeCalculate",
   "license": "AGPL-3.0-or-later",
   "repository": {
