@@ -165,7 +165,15 @@ function buildForArch(arch) {
   const stagingBuildOutputDir = resolveStagingBuildOutputDir(arch);
   const finalBuildOutputDir = resolveFinalBuildOutputDir(arch);
 
-  run('npx', ['electron-builder', ...resolveBuilderArgs(arch), `-c.directories.output=${stagingBuildOutputDir}`]);
+  // IMPORTANT: On CI builds triggered by tags, electron-builder will auto-detect the tag and
+  // attempt to publish unless we explicitly disable it. Publishing is handled by our GH Release step.
+  run('npx', [
+    'electron-builder',
+    ...resolveBuilderArgs(arch),
+    '--publish',
+    'never',
+    `-c.directories.output=${stagingBuildOutputDir}`,
+  ]);
   finalizeBuildOutput(stagingBuildOutputDir, finalBuildOutputDir);
 }
 
