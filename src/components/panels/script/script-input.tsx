@@ -35,11 +35,13 @@ import {
   RefreshCw,
   BookOpen,
   Palette,
+  ExternalLink,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { StylePicker } from "@/components/ui/style-picker";
 import type { PromptLanguage } from "@/types/script";
 import { useScriptStore } from "@/stores/script-store";
+import { useMediaPanelStore } from "@/stores/media-panel-store";
 
 /** Stored values for script content language (canonical English tokens; labels come from i18n). */
 const SCRIPT_LANGUAGE_VALUES = ["English", "Vietnamese", "Chinese", "Japanese"] as const;
@@ -148,6 +150,7 @@ export function ScriptInput({
   const [isGeneratingSynopsis, setIsGeneratingSynopsis] = useState(false);
 
   const { t } = useTranslation();
+  const openSettingsWithSubTab = useMediaPanelStore((s) => s.openSettingsWithSubTab);
 
   const promptLanguageOptions = useMemo(
     () =>
@@ -865,9 +868,19 @@ export function ScriptInput({
         {!chatConfigured && (
           <div className="flex items-start gap-2 p-2 rounded-md bg-yellow-500/10 border border-yellow-500/20">
             <AlertCircle className="h-4 w-4 text-yellow-500 mt-0.5 shrink-0" />
-            <div className="text-xs text-yellow-600 dark:text-yellow-400">
+            <div className="text-xs text-yellow-600 dark:text-yellow-400 min-w-0 flex-1">
               <p className="font-medium">{t("scriptPanel.input.apiNotConfigured")}</p>
               <p className="opacity-80">{t("scriptPanel.input.apiConfigureHint")}</p>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="mt-2 h-7 text-xs border-yellow-500/40 text-yellow-700 hover:bg-yellow-500/15 dark:text-yellow-300"
+                onClick={() => openSettingsWithSubTab("api")}
+              >
+                <ExternalLink className="h-3 w-3 mr-1.5 shrink-0" />
+                {t("scriptPanel.input.openApiSettings")}
+              </Button>
             </div>
           </div>
         )}

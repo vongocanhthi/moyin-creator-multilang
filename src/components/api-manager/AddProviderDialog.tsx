@@ -8,7 +8,7 @@
  * For adding new API providers with platform selection
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Dialog,
@@ -84,7 +84,7 @@ export function AddProviderDialog({
   onSubmit,
   existingPlatforms = [],
 }: AddProviderDialogProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const tk = (key: string) => t(`settings.addProviderDialog.${key}`);
 
   const [platform, setPlatform] = useState("");
@@ -96,6 +96,28 @@ export function AddProviderDialog({
   const selectedPreset = PLATFORM_PRESETS.find((p) => p.platform === platform);
   const isCustom = platform === "custom";
 
+  /** Name + URL + default model from i18n preset (same labels as the platform dropdown). */
+  const applyPlatformPreset = useCallback(
+    (presetPlatform: string) => {
+      const preset = PLATFORM_PRESETS.find((p) => p.platform === presetPlatform);
+      if (!preset) return;
+      if (preset.platform === "custom") {
+        setName(t("settings.addProviderDialog.presets.custom.name"));
+        setBaseUrl("");
+        setModel("");
+        return;
+      }
+      setName(t(`settings.addProviderDialog.presets.${preset.platform}.name`));
+      setBaseUrl(preset.baseUrl);
+      if (preset.models.length > 0) {
+        setModel(preset.models[0]);
+      } else {
+        setModel("");
+      }
+    },
+    [t]
+  );
+
   useEffect(() => {
     if (open) {
       setPlatform("");
@@ -106,20 +128,15 @@ export function AddProviderDialog({
     }
   }, [open]);
 
+  const formStateRef = useRef({ open, platform });
+  formStateRef.current = { open, platform };
+
+  // Chỉ khi đổi ngôn ngữ app (không chạy khi mở/đóng dialog): làm mới tên/Base URL/mô hình mặc định theo locale
   useEffect(() => {
-    if (!selectedPreset) return;
-    if (isCustom) {
-      setName(t(`settings.addProviderDialog.presets.custom.name`));
-      setBaseUrl("");
-      setModel("");
-      return;
-    }
-    setName(t(`settings.addProviderDialog.presets.${selectedPreset.platform}.name`));
-    setBaseUrl(selectedPreset.baseUrl);
-    if (selectedPreset.models.length > 0) {
-      setModel(selectedPreset.models[0]);
-    }
-  }, [platform, selectedPreset, isCustom, t]);
+    const { open: o, platform: p } = formStateRef.current;
+    if (!o || !p) return;
+    applyPlatformPreset(p);
+  }, [i18n.language, applyPlatformPreset]);
 
   const handleSubmit = () => {
     if (!platform) {
@@ -174,7 +191,13 @@ export function AddProviderDialog({
         <div className="flex flex-col gap-4 py-4">
           <div className="space-y-2">
             <Label>{tk("platform")}</Label>
-            <Select value={platform} onValueChange={setPlatform}>
+            <Select
+              value={platform}
+              onValueChange={(value) => {
+                setPlatform(value);
+                applyPlatformPreset(value);
+              }}
+            >
               <SelectTrigger>
                 <SelectValue placeholder={tk("selectPlatform")} />
               </SelectTrigger>

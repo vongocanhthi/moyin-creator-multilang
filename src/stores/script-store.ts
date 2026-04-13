@@ -4,6 +4,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { createProjectScopedStorage } from "@/lib/project-storage";
+import { getDefaultScriptLanguageFieldsForAppLocale } from "@/lib/i18n/script-project-defaults";
 import type { ScriptData, Shot, Episode, ScriptScene, ScriptCharacter, EpisodeRawScript, ProjectBackground, PromptLanguage, CalibrationStrictness, FilteredCharacterRecord, SeriesMeta } from "@/types/script";
 
 export type ParseStatus = "idle" | "parsing" | "ready" | "error";
@@ -295,8 +296,15 @@ export const useScriptStore = create<ScriptStore>()(
       ensureProject: (projectId) => {
         const { projects } = get();
         if (projects[projectId]) return;
+        const localeDefaults = getDefaultScriptLanguageFieldsForAppLocale();
         set({
-          projects: { ...projects, [projectId]: defaultProjectData() },
+          projects: {
+            ...projects,
+            [projectId]: {
+              ...defaultProjectData(),
+              ...localeDefaults,
+            },
+          },
         });
       },
 
@@ -507,10 +515,14 @@ export const useScriptStore = create<ScriptStore>()(
       },
 
       resetProjectData: (projectId) => {
+        const localeDefaults = getDefaultScriptLanguageFieldsForAppLocale();
         set((state) => ({
           projects: {
             ...state.projects,
-            [projectId]: defaultProjectData(),
+            [projectId]: {
+              ...defaultProjectData(),
+              ...localeDefaults,
+            },
           },
         }));
       },

@@ -9,6 +9,7 @@
  */
 
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Dialog,
   DialogContent,
@@ -37,6 +38,7 @@ export function EditProviderDialog({
   provider,
   onSave,
 }: EditProviderDialogProps) {
+  const { t } = useTranslation();
   const [name, setName] = useState("");
   const [baseUrl, setBaseUrl] = useState("");
   const [apiKey, setApiKey] = useState("");
@@ -48,8 +50,7 @@ export function EditProviderDialog({
       setName(provider.name);
       setBaseUrl(provider.baseUrl);
       setApiKey(provider.apiKey);
-      // 加载已有模型
-      setModel(provider.model?.join(', ') || '');
+      setModel(provider.model?.join(", ") || "");
     }
   }, [provider]);
 
@@ -57,15 +58,14 @@ export function EditProviderDialog({
     if (!provider) return;
 
     if (!name.trim()) {
-      toast.error("请输入名称");
+      toast.error(t("settings.editProviderDialog.errors.nameRequired"));
       return;
     }
 
-    // 解析模型列表（支持逗号或换行分隔）
     const models = model
       .split(/[,\n]/)
-      .map(m => m.trim())
-      .filter(m => m.length > 0);
+      .map((m) => m.trim())
+      .filter((m) => m.length > 0);
 
     onSave({
       ...provider,
@@ -76,7 +76,7 @@ export function EditProviderDialog({
     });
 
     onOpenChange(false);
-    toast.success("已保存更改");
+    toast.success(t("settings.editProviderDialog.toastSaved"));
   };
 
   const keyCount = getApiKeyCount(apiKey);
@@ -85,74 +85,71 @@ export function EditProviderDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>编辑供应商</DialogTitle>
+          <DialogTitle>{t("settings.editProviderDialog.title")}</DialogTitle>
         </DialogHeader>
 
         <div className="flex flex-col gap-4 py-4">
-          {/* Platform (read-only) */}
           <div className="space-y-2">
-            <Label className="text-muted-foreground">平台</Label>
+            <Label className="text-muted-foreground">
+              {t("settings.editProviderDialog.platform")}
+            </Label>
             <Input value={provider?.platform || ""} disabled className="bg-muted" />
           </div>
 
-          {/* Name */}
           <div className="space-y-2">
-            <Label>名称</Label>
+            <Label>{t("settings.editProviderDialog.name")}</Label>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="供应商名称"
+              placeholder={t("settings.editProviderDialog.namePlaceholder")}
             />
           </div>
 
-          {/* Base URL */}
           <div className="space-y-2">
-            <Label>Base URL</Label>
+            <Label>{t("settings.editProviderDialog.baseUrl")}</Label>
             <Input
               value={baseUrl}
               onChange={(e) => setBaseUrl(e.target.value)}
-              placeholder="https://api.example.com/v1"
+              placeholder={t("settings.editProviderDialog.baseUrlPlaceholder")}
             />
           </div>
 
-          {/* API Keys */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label>API Keys</Label>
+              <Label>{t("settings.editProviderDialog.apiKeysLabel")}</Label>
               <span className="text-xs text-muted-foreground">
-                {keyCount} 个 Key
+                {t("settings.editProviderDialog.keyCount", { count: keyCount })}
               </span>
             </div>
             <Textarea
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
-              placeholder="输入 API Keys（每行一个，或用逗号分隔）"
+              placeholder={t("settings.editProviderDialog.apiKeysPlaceholder")}
               className="font-mono text-sm min-h-[100px]"
             />
             <p className="text-xs text-muted-foreground">
-              💡 支持多个 Key 轮换使用，失败时自动切换到下一个
+              {t("settings.editProviderDialog.apiKeysHint")}
             </p>
           </div>
 
-          {/* Model */}
           <div className="space-y-2">
-            <Label>模型</Label>
+            <Label>{t("settings.editProviderDialog.model")}</Label>
             <Input
               value={model}
               onChange={(e) => setModel(e.target.value)}
-              placeholder="输入模型名称，如 deepseek-v3"
+              placeholder={t("settings.editProviderDialog.modelPlaceholder")}
             />
             <p className="text-xs text-muted-foreground">
-              多个模型用逗号分隔，第一个为默认模型
+              {t("settings.editProviderDialog.modelHint")}
             </p>
           </div>
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            取消
+            {t("settings.editProviderDialog.cancel")}
           </Button>
-          <Button onClick={handleSave}>保存</Button>
+          <Button onClick={handleSave}>{t("settings.editProviderDialog.save")}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -41,6 +41,7 @@ import { analyzeSceneViewpoints, type ViewpointAnalysisOptions } from "./viewpoi
 import { runStaggered } from "@/lib/utils/concurrency";
 import { calibrateShotsMultiStage } from "./shot-calibration-stages";
 import { buildSeriesContextSummary } from "./series-meta-sync";
+import { formatCalibratedEpisodeTitle, sanitizeTitleBodyFromAI } from "./episode-title-format";
 
 export interface ImportResult {
   success: boolean;
@@ -1103,6 +1104,130 @@ function extractEpisodeSummary(episode: EpisodeRawScript): string {
   return summary || '（无内容）';
 }
 
+type TitleCalibGlobalCtx = {
+  title: string;
+  outline: string;
+  characterBios: string;
+  totalEpisodes: number;
+};
+
+function buildTitleCalibrationPrompts(
+  batch: { index: number; contentSummary: string }[],
+  globalContext: TitleCalibGlobalCtx,
+  seriesCtx: string,
+  promptLanguage: PromptLanguage | undefined
+): { system: string; user: string } {
+  const { title, outline, characterBios, totalEpisodes } = globalContext;
+  const seriesBlock = seriesCtx ? `\n【剧级知识参考】\n${seriesCtx}\n` : '';
+  const pl = promptLanguage ?? 'zh';
+
+  if (pl === 'vi' || pl === 'vi+en') {
+    const system = `Bạn là biên kịch truyền hình chuyên nghiệp, am hiểu cách đặt tên tập phim.
+
+Nhiệm vụ: Dựa trên bối cảnh và tóm tắt nội dung từng tập, đề xuất tiêu đề ngắn (khoảng 6–15 từ tiếng Việt) cho mỗi tập, thể hiện xung đột hoặc bước ngoặt cảm xúc.
+${seriesBlock ? seriesBlock.replace(/【剧级知识参考】/g, '【Bối cảnh series】') : ''}
+【Thông tin kịch bản】
+Tên phim: ${title}
+Tổng số tập: ${totalEpisodes}
+
+【Dàn ý】
+${outline.slice(0, 1500)}
+
+【Nhân vật chính】
+${characterBios.slice(0, 1000)}
+
+【Yêu cầu】
+1. Tiêu đề gợi nội dung hoặc điểm nhấn của tập.
+2. Độ dài 6–15 từ (tiếng Việt).
+3. Phù hợp thể loại; các tiêu đề có mạch liên kết.
+
+Chỉ trả về JSON:
+{
+  "titles": {
+    "1": "tiêu đề (không gồm tiền tố Tập 1:)",
+    "2": "..."
+  }
+}`;
+    const episodeContents = batch
+      .map((ep) => `Tập ${ep.index} — tóm tắt nội dung:\n${ep.contentSummary}`)
+      .join('\n\n');
+    const user = `Hãy đặt tiêu đề cho các tập sau:\n\n${episodeContents}`;
+    return { system, user };
+  }
+
+  if (pl === 'en') {
+    const system = `You are an experienced television writer who names episodes effectively.
+
+Task: Based on the global context and per-episode summaries, propose a short episode title (about 6–15 words in English) for each episode, capturing conflict or emotional turning points.
+${seriesBlock ? seriesBlock.replace(/【剧级知识参考】/g, '[Series bible]') : ''}
+【Script】
+Title: ${title}
+Total episodes: ${totalEpisodes}
+
+【Outline】
+${outline.slice(0, 1500)}
+
+【Main characters】
+${characterBios.slice(0, 1000)}
+
+【Rules】
+1. Titles reflect the episode focus or twist.
+2. Length about 6–15 words (English).
+3. Fit the genre; titles feel cohesive across episodes.
+
+Return JSON only:
+{
+  "titles": {
+    "1": "title text (no Episode 1: prefix)",
+    "2": "..."
+  }
+}`;
+    const episodeContents = batch
+      .map((ep) => `Episode ${ep.index} — summary:\n${ep.contentSummary}`)
+      .join('\n\n');
+    const user = `Generate episode titles for:\n\n${episodeContents}`;
+    return { system, user };
+  }
+
+  const system = `你是好莱坞资深编剧，拥有艾美奖最佳编剧提名经历。
+
+你的专业能力：
+- 精通剧集命名艺术：能用简短有力的标题捕捉每集核心冲突和情感转折
+- 叙事结构把控：理解商战、家族、情感等不同类型剧集的命名风格
+- 市场敏感度：知道什么样的标题能吸引观众，提升点击率
+
+你的任务是根据剧本的全局背景和每集内容，为每集生成简短有吸引力的标题。
+${seriesCtx ? `\n【剧级知识参考】\n${seriesCtx}\n` : ''}
+【剧本信息】
+剧名：${title}
+总集数：${totalEpisodes}集
+
+【故事大纲】
+${outline.slice(0, 1500)}
+
+【主要人物】
+${characterBios.slice(0, 1000)}
+
+【要求】
+1. 标题要能概括该集的主要内容或转折点
+2. 标题长度控制在6-15个字
+3. 风格要符合剧本类型（如商战剧用商战术语，武侠剧用江湖气息）
+4. 标题之间要有连贯性，体现剧情发展
+
+请以JSON格式返回，格式为：
+{
+  "titles": {
+    "1": "第1集标题",
+    "2": "第2集标题"
+  }
+}`;
+  const episodeContents = batch
+    .map((ep) => `第${ep.index}集内容摘要：${ep.contentSummary}`)
+    .join('\n\n');
+  const user = `请为以下集数生成标题：\n\n${episodeContents}`;
+  return { system, user };
+}
+
 /**
  * AI校准：为缺失标题的集数生成标题
  * @param projectId 项目ID
@@ -1139,7 +1264,8 @@ export async function calibrateEpisodeTitles(
     characterBios: background?.characterBios || '',
     totalEpisodes: project.episodeRawScripts.length,
   };
-  
+  const promptLanguage = project.promptLanguage;
+
   // 注入概览里的世界观知识（角色、阵营、时代、力量体系等）
   const seriesCtx = buildSeriesContextSummary(project.seriesMeta || null);
   
@@ -1154,46 +1280,8 @@ export async function calibrateEpisodeTitles(
     const { results, failedBatches, totalBatches } = await processBatched<TitleItem, string>({
       items,
       feature: 'script_analysis',
-      buildPrompts: (batch) => {
-        const { title, outline, characterBios, totalEpisodes } = globalContext;
-        const system = `你是好莱坞资深编剧，拥有艾美奖最佳编剧提名经历。
-
-你的专业能力：
-- 精通剧集命名艺术：能用简短有力的标题捕捉每集核心冲突和情感转折
-- 叙事结构把控：理解商战、家族、情感等不同类型剧集的命名风格
-- 市场敏感度：知道什么样的标题能吸引观众，提升点击率
-
-你的任务是根据剧本的全局背景和每集内容，为每集生成简短有吸引力的标题。
-${seriesCtx ? `\n【剧级知识参考】\n${seriesCtx}\n` : ''}
-【剧本信息】
-剧名：${title}
-总集数：${totalEpisodes}集
-
-【故事大纲】
-${outline.slice(0, 1500)}
-
-【主要人物】
-${characterBios.slice(0, 1000)}
-
-【要求】
-1. 标题要能概括该集的主要内容或转折点
-2. 标题长度控制在6-15个字
-3. 风格要符合剧本类型（如商战剧用商战术语，武侠剧用江湖气息）
-4. 标题之间要有连贯性，体现剧情发展
-
-请以JSON格式返回，格式为：
-{
-  "titles": {
-    "1": "第1集标题",
-    "2": "第2集标题"
-  }
-}`;
-        const episodeContents = batch.map(ep => 
-          `第${ep.index}集内容摘要：${ep.contentSummary}`
-        ).join('\n\n');
-        const user = `请为以下集数生成标题：\n\n${episodeContents}`;
-        return { system, user };
-      },
+      buildPrompts: (batch) =>
+        buildTitleCalibrationPrompts(batch, globalContext, seriesCtx, promptLanguage),
       parseResult: (raw) => {
         let cleaned = raw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
         const parsed = JSON.parse(cleaned);
@@ -1216,15 +1304,21 @@ ${characterBios.slice(0, 1000)}
     for (const ep of missingEpisodes) {
       const newTitle = results.get(String(ep.episodeIndex));
       if (newTitle) {
+        const body = sanitizeTitleBodyFromAI(ep.episodeIndex, newTitle);
+        const fullTitle = formatCalibratedEpisodeTitle(
+          ep.episodeIndex,
+          body,
+          promptLanguage
+        );
         store.updateEpisodeRawScript(projectId, ep.episodeIndex, {
-          title: `第${ep.episodeIndex}集：${newTitle}`,
+          title: fullTitle,
         });
         
         const scriptData = store.projects[projectId]?.scriptData;
         if (scriptData) {
           const epData = scriptData.episodes.find(e => e.index === ep.episodeIndex);
           if (epData) {
-            epData.title = `第${ep.episodeIndex}集：${newTitle}`;
+            epData.title = fullTitle;
             store.setScriptData(projectId, { ...scriptData });
           }
         }

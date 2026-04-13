@@ -22,6 +22,7 @@ import { useAppSettingsStore } from "@/stores/app-settings-store";
 import type { AppLocale } from "@/types/locale";
 import { APP_LOCALES } from "@/types/locale";
 import { useProjectStore } from "@/stores/project-store";
+import { useMediaPanelStore } from "@/stores/media-panel-store";
 import { useCharacterLibraryStore } from "@/stores/character-library-store";
 import { useSceneStore } from "@/stores/scene-store";
 import { useMediaStore } from "@/stores/media-store";
@@ -95,6 +96,7 @@ import {
   localizedAiProviderName,
   localizedImageHostName,
 } from "@/lib/i18n/settings-labels";
+import { formatModelSyncError } from "@/lib/i18n/model-sync-errors";
 import packageJson from "../../../package.json";
 import { INDEXEDDB_APP_DB_NAME } from "@/constants/storage";
 import { APP_GITHUB_RELEASES_URL } from "@/config/github-repo";
@@ -395,6 +397,16 @@ export function SettingsPanel() {
   ).length;
 
   const [activeTab, setActiveTab] = useState<string>("api");
+  const pendingSettingsSubTab = useMediaPanelStore((s) => s.pendingSettingsSubTab);
+  const clearPendingSettingsSubTab = useMediaPanelStore((s) => s.clearPendingSettingsSubTab);
+
+  useEffect(() => {
+    if (pendingSettingsSubTab) {
+      setActiveTab(pendingSettingsSubTab);
+      clearPendingSettingsSubTab();
+    }
+  }, [pendingSettingsSubTab, clearPendingSettingsSubTab]);
+
   const hasStorageManager = typeof window !== "undefined" && !!window.storageManager;
 
   const formatBytes = useCallback((bytes: number) => {
@@ -861,7 +873,11 @@ export function SettingsPanel() {
                                     if (result.success) {
                                       toast.success(t("settings.toast.syncedModels", { count: result.count }));
                                     } else {
-                                      toast.error(result.error || t("settings.api.syncFailed"));
+                                      toast.error(
+                                        result.error
+                                          ? formatModelSyncError(result.error, t)
+                                          : t("settings.api.syncFailed")
+                                      );
                                     }
                                   }}
                                   disabled={!configured || syncingProvider === provider.id}
@@ -1656,7 +1672,12 @@ export function SettingsPanel() {
               if (result.success) {
                 toast.success(t("settings.toast.autoSynced", { count: result.count }));
               } else if (result.error) {
-                toast.error(t("settings.toast.modelSyncFailed", { message: result.error }));
+                toast.warning(
+                  t("settings.toast.autoSyncFailed", {
+                    name: localizedAiProviderName(provider.platform, provider.name, t),
+                    message: formatModelSyncError(result.error, t),
+                  }),
+                );
               }
             });
           }
@@ -1713,7 +1734,12 @@ export function SettingsPanel() {
               if (result.success) {
                 toast.success(t("settings.toast.autoSynced", { count: result.count }));
               } else if (result.error) {
-                toast.error(t("settings.toast.modelSyncFailed", { message: result.error }));
+                toast.warning(
+                  t("settings.toast.autoSyncFailed", {
+                    name: localizedAiProviderName(provider.platform, provider.name, t),
+                    message: formatModelSyncError(result.error, t),
+                  }),
+                );
               }
             });
           }

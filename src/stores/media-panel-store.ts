@@ -63,6 +63,9 @@ export const stages: StageConfig[] = [
   { id: "export", label: "成片与导出", phase: "Phase 04", icon: FilmIcon, tabs: ["export"] },
 ];
 
+/** Sub-tab inside Settings panel (API / Advanced / …). */
+export type SettingsSubTab = "api" | "advanced" | "imagehost" | "storage";
+
 export const tabs: { [key in Tab]: { icon: LucideIcon; label: string; stage?: Stage } } = {
   dashboard: { icon: FileTextIcon, label: "项目" },
   overview: { icon: LayoutDashboardIcon, label: "概览" },
@@ -216,6 +219,10 @@ interface MediaPanelStore {
   pendingSceneData: PendingSceneData | null;
   setPendingSceneData: (data: PendingSceneData | null) => void;
   goToSceneWithData: (data: PendingSceneData) => void;
+  /** When set, Settings panel should switch to this sub-tab once (e.g. API keys). */
+  pendingSettingsSubTab: SettingsSubTab | null;
+  openSettingsWithSubTab: (sub: SettingsSubTab) => void;
+  clearPendingSettingsSubTab: () => void;
 }
 
 export const useMediaPanelStore = create<MediaPanelStore>((set) => ({
@@ -296,4 +303,11 @@ export const useMediaPanelStore = create<MediaPanelStore>((set) => ({
     activeStage: "assets",
     inProject: true,
   }),
+  pendingSettingsSubTab: null,
+  openSettingsWithSubTab: (sub) =>
+    set({
+      pendingSettingsSubTab: sub,
+      activeTab: "settings",
+    }),
+  clearPendingSettingsSubTab: () => set({ pendingSettingsSubTab: null }),
 }));

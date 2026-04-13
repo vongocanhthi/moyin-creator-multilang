@@ -587,13 +587,13 @@ export const useAPIConfigStore = create<APIConfigStore>()(
 
       syncProviderModels: async (providerId) => {
         const provider = get().providers.find(p => p.id === providerId);
-        if (!provider) return { success: false, count: 0, error: '供应商不存在' };
+        if (!provider) return { success: false, count: 0, error: "provider_not_found" };
 
         const keys = parseApiKeys(provider.apiKey);
-        if (keys.length === 0) return { success: false, count: 0, error: '请先配置 API Key' };
+        if (keys.length === 0) return { success: false, count: 0, error: "api_key_required" };
 
         const baseUrl = provider.baseUrl?.replace(/\/+$/, '');
-        if (!baseUrl) return { success: false, count: 0, error: 'Base URL 未配置' };
+        if (!baseUrl) return { success: false, count: 0, error: "base_url_required" };
 
         try {
           // 用 Set 收集所有 key 的模型，自动去重
@@ -608,45 +608,51 @@ export const useAPIConfigStore = create<APIConfigStore>()(
             // MemeFast: /api/pricing_new 获取全量元数据（公开接口）
             const domain = baseUrl.replace(/\/v\d+$/, '');
             const pricingUrl = `${domain}/api/pricing_new`;
+            // NOTE:
+            // Some environments (especially web) may block this public endpoint due to CORS or transient network.
+            // Even if pricing_new fails, we still attempt /v1/models (with API keys) so users can keep using the provider.
+            try {
+              const response = await fetch(pricingUrl);
+              if (!response.ok) {
+                console.warn(`[APIConfig] pricing_new returned ${response.status}, fallback to /v1/models only`);
+              } else {
+                const json = await response.json();
+                const data: Array<{ model_name: string; model_type?: string; tags?: string; supported_endpoint_types?: string[]; enable_groups?: string[] }> = json.data;
+                if (!Array.isArray(data) || data.length === 0) {
+                  console.warn('[APIConfig] pricing_new bad format, fallback to /v1/models only');
+                } else {
+                  console.log(`[APIConfig] Fetched ${data.length} models from pricing_new`);
 
-            const response = await fetch(pricingUrl);
-            if (!response.ok) {
-              return { success: false, count: 0, error: `pricing_new API 返回 ${response.status}` };
-            }
+                  // Collect fresh MemeFast metadata first.
+                  // After sync completes we remove only this provider's stale entries,
+                  // then merge these fresh values into the latest store state.
+                  for (const m of data) {
+                    const name = m.model_name;
+                    if (!name) continue;
+                    if (m.model_type) memefastTypes[name] = m.model_type;
+                    if (m.tags) {
+                      memefastTags[name] = typeof m.tags === 'string'
+                        ? m.tags.split(',').map((t: string) => t.trim()).filter(Boolean)
+                        : m.tags;
+                    }
+                    if (Array.isArray(m.supported_endpoint_types)) {
+                      memefastEndpoints[name] = m.supported_endpoint_types;
+                    }
+                    if (Array.isArray(m.enable_groups) && m.enable_groups.length > 0) {
+                      memefastEnableGroups[name] = m.enable_groups;
+                    }
+                  }
 
-            const json = await response.json();
-            const data: Array<{ model_name: string; model_type?: string; tags?: string; supported_endpoint_types?: string[]; enable_groups?: string[] }> = json.data;
-            if (!Array.isArray(data) || data.length === 0) {
-              return { success: false, count: 0, error: '响应格式异常' };
-            }
-
-            console.log(`[APIConfig] Fetched ${data.length} models from pricing_new`);
-
-            // Collect fresh MemeFast metadata first.
-            // After sync completes we remove only this provider's stale entries,
-            // then merge these fresh values into the latest store state.
-            for (const m of data) {
-              const name = m.model_name;
-              if (!name) continue;
-              if (m.model_type) memefastTypes[name] = m.model_type;
-              if (m.tags) {
-                memefastTags[name] = typeof m.tags === 'string'
-                  ? m.tags.split(',').map((t: string) => t.trim()).filter(Boolean)
-                  : m.tags;
+                  // pricing_new 返回全量（公开列表），先收入
+                  for (const m of data) {
+                    if (typeof m.model_name === 'string' && m.model_name.length > 0) {
+                      allModelIds.add(m.model_name);
+                    }
+                  }
+                }
               }
-              if (Array.isArray(m.supported_endpoint_types)) {
-                memefastEndpoints[name] = m.supported_endpoint_types;
-              }
-              if (Array.isArray(m.enable_groups) && m.enable_groups.length > 0) {
-                memefastEnableGroups[name] = m.enable_groups;
-              }
-            }
-
-            // pricing_new 返回全量（公开列表），先收入
-            for (const m of data) {
-              if (typeof m.model_name === 'string' && m.model_name.length > 0) {
-                allModelIds.add(m.model_name);
-              }
+            } catch (e) {
+              console.warn('[APIConfig] pricing_new fetch failed, fallback to /v1/models only:', e);
             }
 
             // 再遍历每个 key 查 /v1/models 补充该 key 独有模型
@@ -654,6 +660,7 @@ export const useAPIConfigStore = create<APIConfigStore>()(
               ? `${baseUrl}/models`
               : `${baseUrl}/v1/models`;
 
+            let anyKeySuccess = false;
             for (let ki = 0; ki < keys.length; ki++) {
               try {
                 const resp = await fetch(modelsUrl, {
@@ -666,6 +673,7 @@ export const useAPIConfigStore = create<APIConfigStore>()(
                 const j = await resp.json();
                 const arr: Array<{ id: string; supported_endpoint_types?: string[] } | string> = j.data || j;
                 if (!Array.isArray(arr)) continue;
+                anyKeySuccess = true;
                 for (const m of arr) {
                   const id = typeof m === 'string' ? m : m.id;
                   if (typeof id === 'string' && id.length > 0) allModelIds.add(id);
@@ -678,6 +686,11 @@ export const useAPIConfigStore = create<APIConfigStore>()(
               } catch (e) {
                 console.warn(`[APIConfig] MemeFast key#${ki + 1} /v1/models failed:`, e);
               }
+            }
+
+            if (!anyKeySuccess && allModelIds.size === 0) {
+              // pricing_new might have been blocked, and all keys also failed → treat as network.
+              return { success: false, count: 0, error: "network_failed" };
             }
           } else {
             // Standard OpenAI-compatible: 遍历每个 key 查 /v1/models，合并去重
@@ -696,8 +709,8 @@ export const useAPIConfigStore = create<APIConfigStore>()(
                 });
 
                 if (!response.ok) {
-                  lastError = `key#${ki + 1} API 返回 ${response.status}`;
-                  console.warn(`[APIConfig] ${lastError}`);
+                  lastError = `key_http:${ki + 1}:${response.status}`;
+                  console.warn(`[APIConfig] key#${ki + 1} API returned ${response.status}`);
                   continue;
                 }
 
@@ -719,8 +732,8 @@ export const useAPIConfigStore = create<APIConfigStore>()(
                 }
                 console.log(`[APIConfig] key#${ki + 1} contributed models, total so far: ${allModelIds.size}`);
               } catch (e) {
-                lastError = `key#${ki + 1} 网络请求失败`;
-                console.warn(`[APIConfig] ${lastError}:`, e);
+                lastError = `key_network:${ki + 1}`;
+                console.warn(`[APIConfig] key#${ki + 1} network request failed:`, e);
               }
             }
 
@@ -734,13 +747,13 @@ export const useAPIConfigStore = create<APIConfigStore>()(
             }
 
             if (!anySuccess) {
-              return { success: false, count: 0, error: lastError || 'API 返回异常' };
+              return { success: false, count: 0, error: lastError || "api_abnormal" };
             }
           }
 
           const modelIds = Array.from(allModelIds);
           if (modelIds.length === 0) {
-            return { success: false, count: 0, error: '未获取到任何模型' };
+            return { success: false, count: 0, error: "no_models" };
           }
 
           if (isMemefast) {
@@ -773,7 +786,7 @@ export const useAPIConfigStore = create<APIConfigStore>()(
           return { success: true, count: modelIds.length };
         } catch (error) {
           console.error('[APIConfig] Model sync failed:', error);
-          return { success: false, count: 0, error: '网络请求失败，请检查网络' };
+          return { success: false, count: 0, error: "network_failed" };
         }
       },
 
