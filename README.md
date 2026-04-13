@@ -9,6 +9,10 @@
 </p>
 
 <p align="center">
+  <strong>🌐 Multilingual UI supported: VI / EN / ZH / JA / KR</strong>
+</p>
+
+<p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0-blue.svg" alt="License" /></a>
   <a href="https://github.com/vongocanhthi/moyin-creator-multilang/releases"><img src="https://img.shields.io/github/v/release/vongocanhthi/moyin-creator-multilang" alt="Release" /></a>
   <a href="https://github.com/vongocanhthi/moyin-creator-multilang/stargazers"><img src="https://img.shields.io/github/stars/vongocanhthi/moyin-creator-multilang" alt="Stars" /></a>
