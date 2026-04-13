@@ -75,6 +75,7 @@ jobs:
         run: |
           echo "APP_VERSION=$(node -p \"require('./package.json').version\")" >> "$GITHUB_ENV"
           echo "APP_NAME=$(node -p \"require('./package.json').name\")" >> "$GITHUB_ENV"
+          echo "RELEASE_NAME=V$(node -p \"require('./package.json').version\")-multilang" >> "$GITHUB_ENV"
 
       - name: Prepare release assets (rename)
         shell: bash
@@ -111,10 +112,11 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: false
-          name: V${{ env.APP_VERSION }}重大更新
+          name: ${{ env.RELEASE_NAME }}
           body: |
-            ## Ghi chú
-            - Hỗ trợ đa ngôn ngữ (VI/EN/ZH)
+            ## Release notes
+            - Multilang build for Moyin Creator.
+            - Supports multilingual UI (VI/EN/ZH).
           files: |
             release-assets/*.exe
             release-assets/*.dmg
