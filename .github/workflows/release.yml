@@ -87,8 +87,8 @@ jobs:
       - name: Export app version env
         shell: bash
         run: |
-          APP_VERSION="$(node -p 'require(\"./package.json\").version')"
-          APP_NAME="$(node -p 'require(\"./package.json\").name')"
+          APP_VERSION="$(node -p "require('./package.json').version")"
+          APP_NAME="$(node -p "require('./package.json').name")"
           {
             echo "APP_VERSION=${APP_VERSION}"
             echo "APP_NAME=${APP_NAME}"
