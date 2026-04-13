@@ -134,7 +134,7 @@ jobs:
           body: |
             ## Release notes
             - Multilang build for Moyin Creator.
-            - Supports multilingual UI (VI/EN/ZH).
+            - Supports multilingual UI (VI/EN/ZH/JA/KR).
           files: |
             release-assets/*.exe
             release-assets/*.dmg
