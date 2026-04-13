@@ -44,16 +44,17 @@ import { useScriptStore } from "@/stores/script-store";
 import { useMediaPanelStore } from "@/stores/media-panel-store";
 
 /** Stored values for script content language (canonical English tokens; labels come from i18n). */
-const SCRIPT_LANGUAGE_VALUES = ["English", "Vietnamese", "Chinese", "Japanese"] as const;
+const SCRIPT_LANGUAGE_VALUES = ["English", "Vietnamese", "Chinese", "Japanese", "Korean"] as const;
 
 const SCRIPT_LANG_SCRIPT_KEY: Record<
   (typeof SCRIPT_LANGUAGE_VALUES)[number],
-  "en" | "vi" | "zh" | "ja"
+  "en" | "vi" | "zh" | "ja" | "ko"
 > = {
   English: "en",
   Vietnamese: "vi",
   Chinese: "zh",
   Japanese: "ja",
+  Korean: "ko",
 };
 
 interface ScriptInputProps {
@@ -154,17 +155,25 @@ export function ScriptInput({
 
   const promptLanguageOptions = useMemo(
     () =>
-      (["en", "zh+en", "vi+en", "zh", "vi"] as const).map((value) => ({
+      (["en", "zh+en", "vi+en", "ja+en", "ko+en", "zh", "vi", "ja", "ko"] as const).map((value) => ({
         value,
         label: t(
           value === "zh+en"
             ? "scriptPanel.input.promptLang.zhEn"
             : value === "vi+en"
               ? "scriptPanel.input.promptLang.viEn"
+              : value === "ja+en"
+                ? "scriptPanel.input.promptLang.jaEn"
+                : value === "ko+en"
+                  ? "scriptPanel.input.promptLang.koEn"
               : value === "zh"
                 ? "scriptPanel.input.promptLang.zh"
                 : value === "vi"
                   ? "scriptPanel.input.promptLang.vi"
+                  : value === "ja"
+                    ? "scriptPanel.input.promptLang.ja"
+                      : value === "ko"
+                        ? "scriptPanel.input.promptLang.ko"
                   : "scriptPanel.input.promptLang.en"
         ),
       })),

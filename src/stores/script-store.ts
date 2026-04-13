@@ -194,6 +194,8 @@ function migrateScriptLanguageValue(raw: string): string {
       return "Chinese";
     case "日本語":
       return "Japanese";
+    case "한국어":
+      return "Korean";
     default:
       return s;
   }

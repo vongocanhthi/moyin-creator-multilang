@@ -1189,6 +1189,74 @@ Return JSON only:
     return { system, user };
   }
 
+  if (pl === 'ja' || pl === 'ja+en') {
+    const system = `あなたはテレビドラマのプロ脚本家です。エピソード題名（各話タイトル）を魅力的に付けるのが得意です。
+
+タスク：全体設定と各話の要約を踏まえ、各話の内容の核（対立・感情の転換点）を短い日本語タイトル（目安6〜15語）で提案してください。
+${seriesBlock ? seriesBlock.replace(/【剧级知识参考】/g, '【シリーズ設定】') : ''}
+【作品情報】
+作品名：${title}
+総話数：${totalEpisodes}
+
+【あらすじ（全体）】
+${outline.slice(0, 1500)}
+
+【主要人物】
+${characterBios.slice(0, 1000)}
+
+【ルール】
+1. 各話の焦点や転換点が伝わること
+2. 6〜15語程度（日本語）
+3. 作品ジャンルに合い、全体で統一感があること
+
+JSONのみ返してください：
+{
+  "titles": {
+    "1": "タイトル本文（先頭に「第1話：」などの接頭辞を含めない）",
+    "2": "..."
+  }
+}`;
+    const episodeContents = batch
+      .map((ep) => `第${ep.index}話 — 要約：\n${ep.contentSummary}`)
+      .join('\n\n');
+    const user = `次の各話にタイトルを付けてください：\n\n${episodeContents}`;
+    return { system, user };
+  }
+
+  if (pl === 'ko' || pl === 'ko+en') {
+    const system = `당신은 TV 드라마의 전문 작가입니다. 에피소드 제목을 매력적으로 짓는 데 능숙합니다.
+
+작업: 전체 맥락과 각 화의 요약을 바탕으로, 각 화의 핵심 갈등/감정적 전환점을 담은 짧은 한국어 제목(대략 6–15단어)을 제안하세요.
+${seriesBlock ? seriesBlock.replace(/【剧级知识参考】/g, '【시리즈 설정】') : ''}
+【작품 정보】
+제목: ${title}
+총 화수: ${totalEpisodes}
+
+【전체 개요】
+${outline.slice(0, 1500)}
+
+【주요 인물】
+${characterBios.slice(0, 1000)}
+
+【규칙】
+1. 해당 화의 초점/반전을 드러낼 것
+2. 6–15단어 정도(한국어)
+3. 장르에 맞고 전체적으로 일관될 것
+
+JSON만 반환하세요:
+{
+  "titles": {
+    "1": "제목 본문(앞에 '제1화:' 같은 접두사를 넣지 말 것)",
+    "2": "..."
+  }
+}`;
+    const episodeContents = batch
+      .map((ep) => `제${ep.index}화 — 요약:\n${ep.contentSummary}`)
+      .join('\n\n');
+    const user = `다음 에피소드들의 제목을 생성해 주세요:\n\n${episodeContents}`;
+    return { system, user };
+  }
+
   const system = `你是好莱坞资深编剧，拥有艾美奖最佳编剧提名经历。
 
 你的专业能力：

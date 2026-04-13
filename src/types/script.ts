@@ -5,7 +5,7 @@
 export type CompletionStatus = 'pending' | 'in_progress' | 'completed';
 
 // 提示词语言选项（vi / vi+en：越南语提示词，vi+en 同时生成英文供图像/视频模型）
-export type PromptLanguage = 'zh' | 'en' | 'vi' | 'zh+en' | 'vi+en';
+export type PromptLanguage = 'zh' | 'en' | 'vi' | 'ja' | 'ko' | 'zh+en' | 'vi+en' | 'ja+en' | 'ko+en';
 
 // AI角色校准严格度
 export type CalibrationStrictness = 'strict' | 'normal' | 'loose';

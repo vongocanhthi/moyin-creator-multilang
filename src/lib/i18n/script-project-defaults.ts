@@ -17,6 +17,12 @@ export function getDefaultScriptLanguageFieldsForAppLocale(): {
   if (lng.startsWith("zh")) {
     return { language: "Chinese", promptLanguage: "zh" };
   }
+  if (lng.startsWith("ja")) {
+    return { language: "Japanese", promptLanguage: "ja" };
+  }
+  if (lng.startsWith("ko")) {
+    return { language: "Korean", promptLanguage: "ko" };
+  }
   if (lng.startsWith("vi")) {
     return { language: "Vietnamese", promptLanguage: "vi" };
   }

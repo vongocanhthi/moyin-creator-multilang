@@ -6,6 +6,8 @@ import { initReactI18next } from "react-i18next";
 import en from "@/locales/en.json";
 import zh from "@/locales/zh.json";
 import vi from "@/locales/vi.json";
+import ja from "@/locales/ja.json";
+import ko from "@/locales/ko.json";
 import type { AppLocale } from "@/types/locale";
 import { DEFAULT_APP_LOCALE } from "@/types/locale";
 
@@ -13,6 +15,8 @@ const resources = {
   en: { translation: en },
   zh: { translation: zh },
   vi: { translation: vi },
+  ja: { translation: ja },
+  ko: { translation: ko },
 } as const;
 
 void i18n.use(initReactI18next).init({

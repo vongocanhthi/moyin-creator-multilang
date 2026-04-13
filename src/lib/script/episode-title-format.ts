@@ -34,6 +34,12 @@ export function formatCalibratedEpisodeTitle(
   if (pl === "en") {
     return `Episode ${episodeIndex}: ${cleaned}`;
   }
+  if (pl === "ja" || pl === "ja+en") {
+    return `第${episodeIndex}話：${cleaned}`;
+  }
+  if (pl === "ko" || pl === "ko+en") {
+    return `제${episodeIndex}화: ${cleaned}`;
+  }
   return `第${episodeIndex}集：${cleaned}`;
 }
 
