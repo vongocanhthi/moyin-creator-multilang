@@ -11,12 +11,20 @@ permissions:
 
 jobs:
   build:
-    name: Build (${{ matrix.os }})
+    name: Build (${{ matrix.name }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, macos-latest]
+        include:
+          - name: windows-x64
+            os: windows-latest
+          # macOS Intel (x64)
+          - name: macos-x64
+            os: macos-13
+          # macOS Apple Silicon (arm64)
+          - name: macos-arm64
+            os: macos-14
 
     steps:
       - name: Checkout
@@ -35,14 +43,18 @@ jobs:
         if: runner.os == 'Windows'
         run: npm run build:win
 
-      - name: Build desktop artifacts (macOS)
-        if: runner.os == 'macOS'
-        run: npm run build:mac
+      - name: Build desktop artifacts (macOS x64)
+        if: matrix.name == 'macos-x64'
+        run: npm run build:mac:x64
+
+      - name: Build desktop artifacts (macOS arm64)
+        if: matrix.name == 'macos-arm64'
+        run: npm run build:mac:arm64
 
       - name: Upload build directory artifact
         uses: actions/upload-artifact@v4
         with:
-          name: release-build-${{ runner.os }}
+          name: release-build-${{ matrix.name }}
           path: release/build/**
 
   publish:
@@ -55,6 +67,32 @@ jobs:
         with:
           path: dist
 
+      - name: Prepare release assets (rename)
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p release-assets
+
+          # Windows NSIS installer
+          win_setup="$(ls -1 dist/**/**/*setup*.exe 2>/dev/null | head -n 1 || true)"
+          if [[ -n "${win_setup}" ]]; then
+            cp -f "${win_setup}" "release-assets/moyin-creator-${GITHUB_REF_NAME}-setup.exe"
+          fi
+
+          # macOS DMG (x64 + arm64)
+          mac_dmg_x64="$(ls -1 dist/**/**/*x64*mac.dmg 2>/dev/null | head -n 1 || true)"
+          if [[ -n "${mac_dmg_x64}" ]]; then
+            cp -f "${mac_dmg_x64}" "release-assets/Moyin.Creator-${GITHUB_REF_NAME}.dmg"
+          fi
+          mac_dmg_arm64="$(ls -1 dist/**/**/*arm64*mac.dmg 2>/dev/null | head -n 1 || true)"
+          if [[ -n "${mac_dmg_arm64}" ]]; then
+            cp -f "${mac_dmg_arm64}" "release-assets/Moyin.Creator-${GITHUB_REF_NAME}-arm64.dmg"
+          fi
+
+          # Fallback: if naming differs, include all dmg/zip/exe artifacts as-is
+          find dist -type f \( -name "*.dmg" -o -name "*.zip" -o -name "*.exe" \) -maxdepth 6 -print0 \
+            | xargs -0 -I{} cp -n "{}" "release-assets/" || true
+
       - name: Publish
         uses: softprops/action-gh-release@v2
         with:
@@ -63,5 +101,5 @@ jobs:
             ## Ghi chú
             - Hỗ trợ đa ngôn ngữ (VI/EN/ZH)
           files: |
-            dist/**/*
+            release-assets/**/*
 
